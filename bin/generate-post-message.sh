@@ -12,7 +12,7 @@ test -f .env && {
 }
 
 INPUT=$1;
-BASE_INPUT=${1#content/};
+BASE_INPUT=${1#messages/};
 OUTPUT=docs/messages/${BASE_INPUT}.smsg;
 NOW=`date +%s`
 PUBLIC_KEY_URL=${STATIC_HOSTNAME}/sycamore.pub

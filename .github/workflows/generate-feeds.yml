@@ -5,11 +5,11 @@ on:
     branches:
       - '**'
     paths:
-      - content/**
+      - messages/**
 
 jobs:
-  index-content:
-    name: Generate Feeds
+  generate:
+    name: Generate Feeds & Indexes
     runs-on: ubuntu-20.04
 
     steps:
@@ -51,6 +51,6 @@ jobs:
             && git \
               -c "user.name=index-bot" \
               -c "user.email=index-bot@seanmorr.is" \
-              commit -nam 'Indexing content.' \
+              commit -nam 'Indexing messages.' \
             && git push \
             || true
