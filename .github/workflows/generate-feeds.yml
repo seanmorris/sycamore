@@ -9,7 +9,7 @@ on:
 
 jobs:
   index-content:
-    name: index-content
+    name: Generate Feeds
     runs-on: ubuntu-18.04
 
     steps:
@@ -21,7 +21,7 @@ jobs:
       - name: Generate the feeds.
         run:  bash bin/generate-latest-feed.sh
 
-      - name: Add any index files.
+      - name: Add any feeds files.
         run:  git add ./docs/feeds/**
 
       - name: Commit & push any if changes are found
