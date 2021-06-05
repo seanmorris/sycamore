@@ -22,7 +22,7 @@ jobs:
       - name: Generate the feeds.
         run:  bash bin/generate-latest-feed.sh
 
-      - run: echo "$PRIVATE_KEY" > private_key
+      - run: echo "$PRIVATE_KEY" > private_key;
           chmod 600 private_key
         shell: bash
         env:
