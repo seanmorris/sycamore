@@ -22,5 +22,3 @@ git diff HEAD~1 --name-only content/ | while read NAME; do {
 	PRIVATE_KEY=${PRIVATE_KEY} \
 		bash bin/generate-post-message.sh ${NAME};
 }; done;
-
-rm sycamore_key;
