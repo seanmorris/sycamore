@@ -18,7 +18,6 @@ jobs:
         with:
           fetch-depth: 0
 
-
       - name: Generate the feeds.
         run:  bash bin/generate-latest-feed.sh
 
