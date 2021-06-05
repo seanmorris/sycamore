@@ -22,7 +22,7 @@ jobs:
       - name: Generate the feeds.
         run:  bash bin/generate-latest-feed.sh
 
-      - run: 'echo "$PRIVATE_KEY" > .ssh/.private_key'
+      - run: 'echo "$PRIVATE_KEY" > key'
         shell: bash
         env:
           SSH_KEY: ${{secrets.PRIVATE_KEY}}
@@ -32,7 +32,7 @@ jobs:
         env:
           STATIC_HOSTNAME: https://sycamore.seanmorr.is
           AUTHOR: 'Sean Morris <sean@seanmorr.is>'
-          PRIVATE_KEY: .ssh/.private_key
+          PRIVATE_KEY: key
 
       - name: Add any feeds files.
         run:  git add ./docs/feeds/**
