@@ -13,7 +13,7 @@ test -f .env && {
 HOUR=$(echo '60*60' | bc);
 NOW=$(echo `date '+%s'`/${HOUR}*${HOUR} | bc);
 
-FEED_DIR=feeds/`date +%Y-%m`/`date +%d`;
+FEED_DIR=docs/feeds/`date +%Y-%m`/`date +%d`;
 
 mkdir -p $FEED_DIR;
 

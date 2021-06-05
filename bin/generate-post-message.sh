@@ -7,13 +7,13 @@ test -f .env && {
 	source .env;
 	set +o allexport
 } \
-|| test -z $AUTO_SSH_PRIVATE_KEY {
+|| {
 	>&2 echo "Notice: .env file not found.";
 }
 
 INPUT=$1;
 BASE_INPUT=${1#content/};
-OUTPUT=outbox/${BASE_INPUT}.smsg;
+OUTPUT=docs/messages/${BASE_INPUT}.smsg;
 NOW=`date +%s`
 PUBLIC_KEY_URL=${STATIC_HOSTNAME}/sycamore.pub
 
