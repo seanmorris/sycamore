@@ -15,11 +15,11 @@ NOW=$(echo `date '+%s'`/${HOUR}*${HOUR} | bc);
 
 FEED_DIR=feeds/`date +%Y-%m`/`date +%d`;
 
-COMMIT=`git log -1 --format='%H'`;
+COMMIT=`git log -2 --format='%H' | tail -n1`;
 
 mkdir -p $FEED_DIR;
 
-git diff ${COMMIT}~1 --name-only content/ | while read NAME; do {
+git diff ${COMMIT} --name-only content/ | while read NAME; do {
 
 	echo ${NAME#content/} >> $FEED_DIR/${NOW}.sfd;
 
