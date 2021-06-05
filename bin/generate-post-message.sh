@@ -34,7 +34,8 @@ cat << EOF > ${OUTPUT}.HEAD
 EOF
 
 >&2 echo "Generating the signature.";
-cat ${PRIVATE_KEY};
+
+ls -alh
 
 cat ${INPUT} \
 	| ssh-keygen -Y sign -f ${PRIVATE_KEY} -n sycamore \
