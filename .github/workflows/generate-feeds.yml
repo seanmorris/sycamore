@@ -20,7 +20,7 @@ jobs:
         run:  bash bin/generate-latest-feed.sh
 
       - name: Add any index files.
-        run:  git add ./feeds/*
+        run:  git add ./feeds/**
 
       - name: Commit & push any if changes are found
         run:  |
