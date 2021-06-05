@@ -10,6 +10,9 @@ cat ${PEER_LIST} | while read PEER_URL; do {
 	PEER_HOST=${PEER_URL#https:\/\/}
 	PEER_PATH=docs/peers/@"${PEER_HOST}";
 	FEED_LIST=${PEER_PATH}/index.html;
+	LIST_PATH=$(dirname "${FEED_LIST}");
+
+	mkdir -p $LIST_PATH;
 
 	curl ${PEER_URL} > ${FEED_LIST};
 
@@ -19,7 +22,7 @@ cat ${PEER_LIST} | while read PEER_URL; do {
 		FEED_BASE=$(basename $FEED_URL);
 		FEED_TIME=${FEED_BASE%%.*};
 		PEER_FEED=${FEED_URL};
-		FEED_FILE=${PEER_PATH}/feeds/$(basename "${FEED_URL}");
+		FEED_FILE=${PEER_PATH}/${FEED_URL};
 		FEED_PATH=$(dirname "${FEED_FILE}");
 		
 		mkdir -p ${FEED_PATH};
