@@ -1,0 +1,33 @@
+#!/usr/bin/env sycamore
+      fb
+{
+	"authority": "https://sycamore.seanmorr.is"
+	, "name":    "hello-world.md"
+	, "author":  "Sean Morris <sean@seanmorr.is>"
+	, "key"   :  "https://sycamore.seanmorr.is/sycamore.pub"
+	, "issued":  1622927441
+	, "request": "post" 
+	, "respond": null
+}
+     4bf
+-----BEGIN SSH SIGNATURE-----
+U1NIU0lHAAAAAQAAAZcAAAAHc3NoLXJzYQAAAAMBAAEAAAGBAObimz5f1JaW+UhuPWmyDB
+QR1Jdt3X7nIkroZyIvXesnddQXTk9vxlnBs4lrFSLDoOlSIw/BYK+GUBXf1miTu8/d+c0C
+gmifiK30W6TA1q0yvV4qs7xQi+wHiob5aahyxwicjIRXHtNwqsJ6kakwwUvgRyGmT/n8D0
+G840mJq3SHQIvKOi1cpVuHuie5za0QIgbs0E1J4wTsYoq9Rd1tUUTpFXJ9SioUyhEM/Jhi
+Od0clYMYZIE3nJocC3LbwwT7FDNEZOkN9ep1rcRAvBKYKARB5u6eNxh6E0Y8Nz3KuS1Pfa
+XhM74j1B623QV7Gt8K1uUi913qBCMbC2KCQpdQNjln/sT0JApPvgnFAeCFZkLyoUq+CbUu
+eGYCGVA0QElR6zfsgWN/aCInwdNCZjonQHBr5DdCRlYt8Tm5L3FS58kFNZ8qK465mxyFg+
+xegoQEHbcO6vG2a6o66N8tAO/nMwb/rjt8nnyUQN4fsQRVqUR5Zzf6bO2Ro1bHe/A3rTHp
+PQAAAAhzeWNhbW9yZQAAAAAAAAAGc2hhNTEyAAABlAAAAAxyc2Etc2hhMi01MTIAAAGAPS
+qn7AcG9RMPt2jlZx/9mFeBjqmSspPksw6S9VGTT1jqt5b3kt0JOVa0Up9r/t7/eticA36L
+slz6rCDhLgIR3/sghR+l/UVmcEZimb8F0UqOZ/cSF2+fznBqO5l7sDEbegZwjAhSQgNrWK
+OZtDlimX0eWAzyo1VqmiL6ZL33epJ2LD4C25vrYDj2cg2GaPdePwRcp9u036X5IzDK0JA2
+XspLz7jXKS/b5mLJgeiViYgyKBE3VVeVjFPwptcEOxRQFNqkIrUI7IzLGYGk2LZ34yXhQQ
+uKbSLRlwTz5WNGnTlNjBIAwPq5c8kaF3P9pEC0edmrBxh9ucArgiOtEJt8Fjqvs77AZItb
+ymGeQS/fZDDJfdorS+BOm691m/YnYy95EQ+uEAg1TfQ0xq0c2sn/5Xj83H24no2P+n0ggU
+A+HsU9VXXxwOZEGFUOiqJNKb8ljftfhpsKhyj1Jzs+Oa5/M1D3Y8PQyut2+TeFy2lKIIKS
+T0dzLaSmqmtXnvWJc2Ud
+-----END SSH SIGNATURE-----
+       d
+Hello World!
