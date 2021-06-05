@@ -14,8 +14,9 @@ test -f .env && {
 INPUT=$1;
 BASE_INPUT=${1#messages/};
 OUTPUT=docs/messages/${BASE_INPUT}.smsg;
-NOW=`date +%s`
-PUBLIC_KEY_URL=${STATIC_HOSTNAME}/sycamore.pub
+PUBLIC_KEY_URL=${STATIC_HOSTNAME}/sycamore.pub;
+TYPE=$(file -b --mime-type);
+NOW=$(date +%s);
 
 test -f $INPUT || exit 1;
 
@@ -28,10 +29,11 @@ cat << EOF > ${OUTPUT}.HEAD
 	"authority": "${STATIC_HOSTNAME}"
 	, "name":    "${BASE_INPUT}"
 	, "author":  "${AUTHOR}"
-	, "key"   :  "${PUBLIC_KEY_URL}"
 	, "issued":  ${NOW}
 	, "request": "post" 
 	, "respond": null
+	, "type":    "${TYPE}"
+	, "key"   :  "${PUBLIC_KEY_URL}"
 }
 EOF
 
