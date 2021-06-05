@@ -22,11 +22,10 @@ jobs:
       - name: Generate the feeds.
         run:  bash bin/generate-latest-feed.sh
 
-      - run: echo "$PRIVATE_KEY" > private_key;
-          chmod 600 private_key
+      - run: echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
         shell: bash
         env:
-          SSH_KEY: ${{secrets.PRIVATE_KEY}}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
       
       - name: Generate messages.
         run:  bash bin/generate-post-messages.sh
