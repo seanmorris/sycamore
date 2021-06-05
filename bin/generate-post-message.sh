@@ -37,7 +37,7 @@ EOF
 cat ${PRIVATE_KEY};
 
 cat ${INPUT} \
-	| ssh-keygen -Y sign -n sycamore -f ${PRIVATE_KEY} \
+	| ssh-keygen -Y sign -f ${PRIVATE_KEY} -n sycamore \
 	> ${OUTPUT}.SIGN;
 
 >&2 echo "Starting output...";
