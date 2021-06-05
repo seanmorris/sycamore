@@ -16,8 +16,8 @@ jobs:
       - name: checkout.
         uses: actions/checkout@v2
 
-      - name: Build the index.
-        run:  bash bin/generate-feeds.sh
+      - name: Generate the feeds.
+        run:  bash bin/generate-latest-feed.sh
 
       - name: Add any index files.
         run:  git add ./feeds/*
