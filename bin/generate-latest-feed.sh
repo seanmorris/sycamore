@@ -17,7 +17,7 @@ FEED_DIR=feeds/`date +%Y-%m`/`date +%d`;
 
 mkdir -p $FEED_DIR;
 
-git diff --name-only content/ | while read NAME; do {
+git diff HEAD~1 --name-only content/ | while read NAME; do {
 
 	echo ${NAME#content/} >> $FEED_DIR/${NOW}.sfd;
 
