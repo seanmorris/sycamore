@@ -1,0 +1,33 @@
+name: Generate Feeds
+
+on:
+  push:
+    branches:
+      - '**'
+    paths:
+      - content/**
+
+jobs:
+  index-content:
+    name: index-content
+    runs-on: ubuntu-18.04
+
+    steps:
+      - name: checkout.
+        uses: actions/checkout@v2
+
+      - name: Build the index.
+        run:  bash bin/generate-feeds.sh
+
+      - name: Add any index files.
+        run:  git add ./feeds/*
+
+      - name: Commit & push any if changes are found
+        run:  |
+          test -n "$(git status -s)" \
+            && git \
+              -c "user.name=index-bot" \
+              -c "user.email=index-bot@seanmorr.is" \
+              commit -nam 'Indexing content.' \
+            && git push \
+            || true
