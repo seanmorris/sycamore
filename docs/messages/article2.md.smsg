@@ -1,18 +1,17 @@
 🍁
-      f8
+     316
 {
 	"authority": "https://sycamore.seanmorr.is"
 	, "name":    "article2.md"
-	, "author":  "Sean Morris <sean@seanmorr.is>"
+	, "author":  "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDm4ps+X9SWlvlIbj1psgwUEdSXbd1+5yJK6GciL13rJ3XUF05Pb8ZZwbOJaxUiw6DpUiMPwWCvhlAV39Zok7vP3fnNAoJon4it9FukwNatMr1eKrO8UIvsB4qG+WmocscInIyEVx7TcKrCepGpMMFL4Echpk/5/A9BvONJiat0h0CLyjotXKVbh7onuc2tECIG7NBNSeME7GKKvUXdbVFE6RVyfUoqFMoRDPyYYjndHJWDGGSBN5yaHAty28ME+xQzRGTpDfXqda3EQLwSmCgEQebunjcYehNGPDc9yrktT32l4TO+I9Qett0FexrfCtblIvdd6gQjGwtigkKXUDY5Z/7E9CQKT74JxQHghWZC8qFKvgm1LnhmAhlQNEBJUes37IFjf2giJ8HTQmY6J0Bwa+Q3QkZWLfE5uS9xUufJBTWfKiuOuZschYPsXoKEBB23DurxtmuqOujfLQDv5zMG/647fJ58lEDeH7EEValEeWc3+mztkaNWx3vwN60x6T0= sean@hyperterminal
+"
 	, "key"   :  "https://sycamore.seanmorr.is/sycamore.pub"
-	, "issued":  1622929257
+	, "issued":  1622929777
 	, "request": "post" 
 	, "respond": null
 }
-      1a
+      18
 This is something new...
-
-
      4bf
 -----BEGIN SSH SIGNATURE-----
 U1NIU0lHAAAAAQAAAZcAAAAHc3NoLXJzYQAAAAMBAAEAAAGBAObimz5f1JaW+UhuPWmyDB
@@ -23,13 +22,13 @@ Od0clYMYZIE3nJocC3LbwwT7FDNEZOkN9ep1rcRAvBKYKARB5u6eNxh6E0Y8Nz3KuS1Pfa
 XhM74j1B623QV7Gt8K1uUi913qBCMbC2KCQpdQNjln/sT0JApPvgnFAeCFZkLyoUq+CbUu
 eGYCGVA0QElR6zfsgWN/aCInwdNCZjonQHBr5DdCRlYt8Tm5L3FS58kFNZ8qK465mxyFg+
 xegoQEHbcO6vG2a6o66N8tAO/nMwb/rjt8nnyUQN4fsQRVqUR5Zzf6bO2Ro1bHe/A3rTHp
-PQAAAAhzeWNhbW9yZQAAAAAAAAAGc2hhNTEyAAABlAAAAAxyc2Etc2hhMi01MTIAAAGAVN
-HKFmDPs/yq0QY0n1Gdot0PhzBnVfL1qx9W/Ng9RnhyCopkYnSoRQFUKpOuQyfYyu7cY2rS
-HXqWPpeBsvtwa3HkBS0EOu8ThwcXWfIMiTrj8XUTl5GDKjyeyqQJC07CGNw1a4+i7iq5tZ
-GJcq6+JYFaeSlGaGTiHe5r9WqkyHUBroV/WhlpUDsoqb+w6KJevOTdvdT4gB3+C+D/0kBM
-CmuM/zT4nrU6480B5gacJYotApHSabla8tSALQtCAf/afTUah/uv2rROtn02u6zfex8diz
-Cu5Hh+cSaU0ePWTC8b8UTdpTUBA1xLMtfktTkU6p33Cure/bG7h8sYbcM03BNlhzU6r/NZ
-XU7aEJ1urggSWnNXWnMA4EXAgkHP0+lmMk0CZIZ4szeUCNXEibgXJt8y/z5qv4pwWjnSWW
-DFsKwYthZgBC9rGHYI/HIA7J3RynNhNymwj+JWewRW84bH1MYsi1iFD5tELAN81oylMJg9
-hIXpN/YBL5YoTq+QV+8Y
+PQAAAAhzeWNhbW9yZQAAAAAAAAAGc2hhNTEyAAABlAAAAAxyc2Etc2hhMi01MTIAAAGAmy
+9p/BjEeq0Ejn68aa8HZ86iMCht0h9DhtavpqWlUOQUhBCk3smT2KPSJ5/Gp9Fiad3eDtxC
+nJQKiNJSsYgDyxXcG4WwFRQ//RjtqEZM8Ll9UEj8jPKmhqFQWae6fU9a2zFjiGIG0oK4N2
+Nr2QA1GD+Tx9KP5mwEKXSWo4wjwdVDvDrc128l4ul6al+Zjhe5pBUBhpGfQWja7jzVzB6R
+UPLp5LSMSgxC3RraFXNrC7Qy4jqJVmbhKvFsf0Jm5fUjdPvnenn1S9TnJLMjJ9wJBYCdbJ
+70lCplF8q+Ob2rrc1UlqxOpgpJPqaR/xSjIpyeRX1R9zDoU8gTt5kHZS72cHTl7DvtLT9W
+sk4wm/WWyoZvV2i/dAtWlOzsq0SIuQPf/qLZVvSZbDT1zehBVJT/uJ4HHBMcDoymskkShV
+KvakZc3qYjCi14U+O8ALDKSK3yFfNfhjCwabZ4Cv8dEExmOV24UG6hbI4Gzc0H/dEj0MRi
+L2hjP8EjmU/2PCSNkmU8
 -----END SSH SIGNATURE-----
