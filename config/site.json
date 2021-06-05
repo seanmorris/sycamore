@@ -1,0 +1,19 @@
+{
+	"sycamore.seanmorr.is": {
+		"is": "repository"
+		, "serves": {
+			"syndicates": "/syndicates.json"
+			, "follow":   "/follow.json"
+			, "avatar":   "/avatar.jpg"			
+			, "about":    "/about.json"
+		}
+	}
+	, "hub.sycamore.seanmorr.is": {
+		"is": "relay"
+		, "serves": {
+			"announce": "announce"
+			, "chat":   "chat:!{RESOURCE}"
+			, "sync":   "sync:!{RESOURCE}"
+		}
+	}
+}
