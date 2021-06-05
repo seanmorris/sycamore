@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail;
+set -euxo pipefail;
 
 test -f .env && {
 	>&2 echo "Loading .env file.";
