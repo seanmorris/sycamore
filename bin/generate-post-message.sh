@@ -19,6 +19,8 @@ PUBLIC_KEY_URL=${STATIC_HOSTNAME}/sycamore.pub
 
 test -f $INPUT || exit 1;
 
+mkdir -p $(dirname $OUTPUT);
+
 >&2 echo "Generating the header.";
 
 cat << EOF > ${OUTPUT}.HEAD
