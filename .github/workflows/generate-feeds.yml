@@ -25,7 +25,7 @@ jobs:
       - run: 'echo "$PRIVATE_KEY" > /tmp/key'
         shell: bash
         env:
-          SSH_KEY: ${{secrets.SSH_KEY}}
+          SSH_KEY: ${{secrets.PRIVATE_KEY}}
       
       - name: Generate messages.
         run:  bash bin/generate-post-messages.sh
