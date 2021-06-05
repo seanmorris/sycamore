@@ -18,5 +18,5 @@ FEED_DIR=docs/feeds/`date +%Y-%m`/`date +%d`;
 mkdir -p $FEED_DIR;
 
 git diff HEAD~1 --name-only content/ | while read NAME; do {
-	bash bin/generate-post-message.sh ${NAME};
+	STATIC_HOSTNAME=${STATIC_HOSTNAME} bash bin/generate-post-message.sh ${NAME};
 }; done;
