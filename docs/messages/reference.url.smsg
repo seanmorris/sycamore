@@ -1,0 +1,33 @@
+🍁
+      fd
+{
+	"authority": "https://sycamore.seanmorr.is"
+	, "name":    "reference.url"
+	, "author":  "Sean Morris <contact@seanmorr.is>"
+	, "key"   :  "https://sycamore.seanmorr.is/sycamore.pub"
+	, "issued":  1622933354
+	, "request": "post" 
+	, "respond": null
+}
+      14
+https://seanmorr.is/
+     4bf
+-----BEGIN SSH SIGNATURE-----
+U1NIU0lHAAAAAQAAAZcAAAAHc3NoLXJzYQAAAAMBAAEAAAGBAObimz5f1JaW+UhuPWmyDB
+QR1Jdt3X7nIkroZyIvXesnddQXTk9vxlnBs4lrFSLDoOlSIw/BYK+GUBXf1miTu8/d+c0C
+gmifiK30W6TA1q0yvV4qs7xQi+wHiob5aahyxwicjIRXHtNwqsJ6kakwwUvgRyGmT/n8D0
+G840mJq3SHQIvKOi1cpVuHuie5za0QIgbs0E1J4wTsYoq9Rd1tUUTpFXJ9SioUyhEM/Jhi
+Od0clYMYZIE3nJocC3LbwwT7FDNEZOkN9ep1rcRAvBKYKARB5u6eNxh6E0Y8Nz3KuS1Pfa
+XhM74j1B623QV7Gt8K1uUi913qBCMbC2KCQpdQNjln/sT0JApPvgnFAeCFZkLyoUq+CbUu
+eGYCGVA0QElR6zfsgWN/aCInwdNCZjonQHBr5DdCRlYt8Tm5L3FS58kFNZ8qK465mxyFg+
+xegoQEHbcO6vG2a6o66N8tAO/nMwb/rjt8nnyUQN4fsQRVqUR5Zzf6bO2Ro1bHe/A3rTHp
+PQAAAAhzeWNhbW9yZQAAAAAAAAAGc2hhNTEyAAABlAAAAAxyc2Etc2hhMi01MTIAAAGAjh
+2KVbDbaPEgaPyvlCLLfPOxxFndnBDZNu0J3/TIylRY49R15hFExp7lTbH7GKwWQO5zR7FX
+ySmhwwl6xtmsN+NTGXdIWH4asqokUDLzNZvVfmg0dAzUHGiRI64j6lAKYv9XabnNsV6f1q
+SuoVlyILffpvNtyujXhT9F8uZDL8vcvjf0BIcesMyCWYqkRoOVdFmVdOYyH9WGKfYHlUUj
+f98sIZ16JZ0HCgEGrFdZni7+YAX2dXMovtMD2QEjSZmxrPrxgmCSdvooSGnRKl1GkQYRdv
+2jDyU8ThlJGkOf9+7imQDSVkk5zLexfgY9cLgpBZlah4sQtjd0GdrKplDLakqiFZ15Oi+z
+A+NDpfHLHCw4Qgr+3xe9oCCfTtg42MJAVNhWZCLolno5SmcEuD24cDOyTjk3dinI2vj8Ie
+qJ9mAYqTsurk+6miZf9zvby7yWt7mF9jDNagtjLNS+N2zgu7+z/su+H6OHa4PZG0ebzqfk
+9zY2muTjf01LjjqwtZNu
+-----END SSH SIGNATURE-----
