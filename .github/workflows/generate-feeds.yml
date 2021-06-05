@@ -30,7 +30,7 @@ jobs:
       - run: echo "$PUBLIC_KEY" > ssh_key.pub
         shell: bash
         env:
-          PRIVATE_KEY: ${{ secrets.PUBLIC_KEY }}
+          PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
       
       - name: Generate messages.
         run:  bash bin/generate-post-messages.sh
