@@ -15,7 +15,7 @@ INPUT=$1;
 BASE_INPUT=${1#messages/};
 OUTPUT=docs/messages/${BASE_INPUT}.smsg;
 PUBLIC_KEY_URL=${STATIC_HOSTNAME}/sycamore.pub;
-TYPE=$(file -b --mime-type);
+TYPE=$(file -b --mime-type ${INPUT});
 NOW=$(date +%s);
 
 test -f $INPUT || exit 1;

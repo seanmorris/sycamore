@@ -1,16 +1,18 @@
 🍁
-      fd
+     118
 {
 	"authority": "https://sycamore.seanmorr.is"
 	, "name":    "reference.url"
 	, "author":  "Sean Morris <contact@seanmorr.is>"
-	, "key"   :  "https://sycamore.seanmorr.is/sycamore.pub"
-	, "issued":  1622933354
+	, "issued":  1622935902
 	, "request": "post" 
 	, "respond": null
+	, "type":    "text/plain"
+	, "key"   :  "https://sycamore.seanmorr.is/sycamore.pub"
 }
-      14
-https://seanmorr.is/
+      21
+https://seanmorr.is/sycamore.pub
+
      4bf
 -----BEGIN SSH SIGNATURE-----
 U1NIU0lHAAAAAQAAAZcAAAAHc3NoLXJzYQAAAAMBAAEAAAGBAObimz5f1JaW+UhuPWmyDB
@@ -21,13 +23,13 @@ Od0clYMYZIE3nJocC3LbwwT7FDNEZOkN9ep1rcRAvBKYKARB5u6eNxh6E0Y8Nz3KuS1Pfa
 XhM74j1B623QV7Gt8K1uUi913qBCMbC2KCQpdQNjln/sT0JApPvgnFAeCFZkLyoUq+CbUu
 eGYCGVA0QElR6zfsgWN/aCInwdNCZjonQHBr5DdCRlYt8Tm5L3FS58kFNZ8qK465mxyFg+
 xegoQEHbcO6vG2a6o66N8tAO/nMwb/rjt8nnyUQN4fsQRVqUR5Zzf6bO2Ro1bHe/A3rTHp
-PQAAAAhzeWNhbW9yZQAAAAAAAAAGc2hhNTEyAAABlAAAAAxyc2Etc2hhMi01MTIAAAGAjh
-2KVbDbaPEgaPyvlCLLfPOxxFndnBDZNu0J3/TIylRY49R15hFExp7lTbH7GKwWQO5zR7FX
-ySmhwwl6xtmsN+NTGXdIWH4asqokUDLzNZvVfmg0dAzUHGiRI64j6lAKYv9XabnNsV6f1q
-SuoVlyILffpvNtyujXhT9F8uZDL8vcvjf0BIcesMyCWYqkRoOVdFmVdOYyH9WGKfYHlUUj
-f98sIZ16JZ0HCgEGrFdZni7+YAX2dXMovtMD2QEjSZmxrPrxgmCSdvooSGnRKl1GkQYRdv
-2jDyU8ThlJGkOf9+7imQDSVkk5zLexfgY9cLgpBZlah4sQtjd0GdrKplDLakqiFZ15Oi+z
-A+NDpfHLHCw4Qgr+3xe9oCCfTtg42MJAVNhWZCLolno5SmcEuD24cDOyTjk3dinI2vj8Ie
-qJ9mAYqTsurk+6miZf9zvby7yWt7mF9jDNagtjLNS+N2zgu7+z/su+H6OHa4PZG0ebzqfk
-9zY2muTjf01LjjqwtZNu
+PQAAAAhzeWNhbW9yZQAAAAAAAAAGc2hhNTEyAAABlAAAAAxyc2Etc2hhMi01MTIAAAGAhG
+nXyyTpWZzmvoEdliufEPeT5NEHXITytgwFZ3Wb9G3zxoSlRFQIIfhgOKrAUY5/7W/F1dlo
+nLsqoEUKqCK2NQnBUJ69Jj8IEVNklnL4KSR6Aj5KWsfetH0aY7rKu+7nLqD+SnIr5wYEk4
+3vMiEkMNSSrFmIGJsMLIOF370NdXvkry26m9q+PVW1N8GTVIGM/n+U9qxl+qDtOJxGa4BH
+ErUBlFybGMrpWTK8SMp8IJWJc9ZJbtT+Alql0feX9p8zaIRpBAI2v/r8NSANBVrOjX3P/I
+OEg4FcjePx8ehrJXb4sg0La2nOHYRENLmfHZZ2Hh6gSlG3DjCaVQIxKiOi4MyDAJHU/pGD
+C3vT8RsA7VmZm1eFTtn4YAbK00nQD7BTS0lDS8SrjCiiaTChrJF6EjCL0gTOACfa+y7iDL
+/tSeFv1rTyeCf6eTBmNC+jpscSNo2ei2omJkC+zAaDqLo3KZiwtiqDGAC9EmflIUAHsFFL
+DAfL/xzArd51rY5+dohS
 -----END SSH SIGNATURE-----
