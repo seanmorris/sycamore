@@ -21,6 +21,6 @@ mkdir -p $FEED_DIR;
 
 git diff ${COMMIT} --name-only content/ | while read NAME; do {
 
-	echo ${NAME#content/} >> $FEED_DIR/${NOW}.sfd;
+	echo `date +%s` ${NAME#content/} >> $FEED_DIR/${NOW}.sfd;
 
 }; done;
