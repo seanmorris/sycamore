@@ -23,9 +23,9 @@ jobs:
 
       - name: Generate messages.
         run:  bash bin/generate-post-messages.sh
-          with:
-            STATIC_HOSTNAME: https://sycamore.seanmorr.is
-            AUTHOR: 'Sean Morris <sean@seanmorr.is>'
+        env:
+          STATIC_HOSTNAME: https://sycamore.seanmorr.is
+          AUTHOR: 'Sean Morris <sean@seanmorr.is>'
 
       - name: Add any feeds files.
         run:  git add ./docs/feeds/**
