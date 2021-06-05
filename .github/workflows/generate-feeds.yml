@@ -26,7 +26,7 @@ jobs:
         env:
           STATIC_HOSTNAME: https://sycamore.seanmorr.is
           AUTHOR: 'Sean Morris <sean@seanmorr.is>'
-          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          PRIVATE_KEY: ${{secrets.PRIVATE_KEY}}
 
       - name: Add any feeds files.
         run:  git add ./docs/feeds/**
