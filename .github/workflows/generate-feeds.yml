@@ -30,13 +30,13 @@ jobs:
       - run: echo "$PUBLIC_KEY" > ssh_key.pub
         shell: bash
         env:
-          PUBLIC_KEY: ${{ secrets.PUBLIC_KEY }}
+          PUBLIC_KEY: 
       
       - name: Generate messages.
         run:  bash bin/generate-post-messages.sh
         env:
-          STATIC_HOSTNAME: https://sycamore.seanmorr.is
-          AUTHOR: 'Sean Morris <sean@seanmorr.is>'
+          STATIC_HOSTNAME: ${{ secrets.STATIC_HOSTNAME }}
+          AUTHOR: ${{ secrets.PUBLIC_KEY }}
           PRIVATE_KEY: ssh_key.pub
 
       - name: Add any feeds files.
