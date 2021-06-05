@@ -21,21 +21,11 @@ jobs:
       - name: Generate the feeds.
         run:  bash bin/generate-latest-feed.sh
 
-      - name: Add any feeds files.
-        run:  git add ./docs/feeds/**
-
-      - name: Commit & push any if changes are found
-        run:  |
-          test -n "$(git status -s)" \
-            && git \
-              -c "user.name=index-bot" \
-              -c "user.email=index-bot@seanmorr.is" \
-              commit -nam 'Indexing content.' \
-            && git push \
-            || true
-    
       - name: Generate messages.
         run:  bash bin/generate-post-messages.sh
+
+      - name: Add any feeds files.
+        run:  git add ./docs/feeds/**
 
       - name: Add any message files.
         run:  git add ./docs/messages/**
