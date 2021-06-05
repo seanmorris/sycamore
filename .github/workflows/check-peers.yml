@@ -1,0 +1,19 @@
+name: Check Peers Updates
+
+on:
+  schedule:
+    - cron:  '30 5,17 * * *'
+
+jobs:
+  generate:
+    name: Generate Feeds & Indexes
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: checkout.
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      
+      - name: Check for .
+        run:  bash bin/generate-latest-feed.sh
