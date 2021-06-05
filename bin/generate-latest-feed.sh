@@ -19,7 +19,7 @@ COMMIT=`git log -1 --format='%H'`;
 
 mkdir -p $FEED_DIR;
 
-git diff ${COMMIT}..${COMMIT}~1 --name-only content/ | while read NAME; do {
+git diff ${COMMIT}~1 --name-only content/ | while read NAME; do {
 
 	echo ${NAME#content/} >> $FEED_DIR/${NOW}.sfd;
 
