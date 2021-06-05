@@ -4,15 +4,14 @@
 	"authority": "https://sycamore.seanmorr.is"
 	, "name":    "article2.md"
 	, "author":  "Sean Morris <contact@seanmorr.is>"
-	, "issued":  1622935902
+	, "issued":  1622935980
 	, "request": "post" 
 	, "respond": null
 	, "type":    "text/plain"
 	, "key"   :  "https://sycamore.seanmorr.is/sycamore.pub"
 }
-      1a
+      19
 This is something new...
-
 
      4bf
 -----BEGIN SSH SIGNATURE-----
@@ -24,13 +23,13 @@ Od0clYMYZIE3nJocC3LbwwT7FDNEZOkN9ep1rcRAvBKYKARB5u6eNxh6E0Y8Nz3KuS1Pfa
 XhM74j1B623QV7Gt8K1uUi913qBCMbC2KCQpdQNjln/sT0JApPvgnFAeCFZkLyoUq+CbUu
 eGYCGVA0QElR6zfsgWN/aCInwdNCZjonQHBr5DdCRlYt8Tm5L3FS58kFNZ8qK465mxyFg+
 xegoQEHbcO6vG2a6o66N8tAO/nMwb/rjt8nnyUQN4fsQRVqUR5Zzf6bO2Ro1bHe/A3rTHp
-PQAAAAhzeWNhbW9yZQAAAAAAAAAGc2hhNTEyAAABlAAAAAxyc2Etc2hhMi01MTIAAAGAGi
-Q4HP9vyYhV4BwTqJqC/BJpkMms3JFKN3JTH81BhRmDDsxrfTraEOfV3LnlfOf1MwBdKYZw
-OC1GbIt8s2VqRWlNs9auMkN/lVRW07/L/mv7cxThlQ71xPSC2ZSsOCsf4L44dPUkol71DJ
-MwGOzuKwbRoy0cgtsriU2G/A0XpmWWshHmEDjmSBqeycRiAsJ4sC90M7loeasywWu0+Q4q
-9r4UJ/42gDA63OFSfsN+DbezvKQYYuNqQjlT7clWhNgdOKaTmHR8NhqMiueGoHpe3rdbF7
-d/E6XxWfhV+D9KcdLpB37pAleQ0UMUVwb7RQR58PE3yQGPJWQqK3cqsbh7XWFuWwUoOItD
-Pgxc0Yp88PzJXsXQ1R5webjiV57DXqsk0A98bYq7FZunk044NjrpoxrRqw4HfFn9CsF6yP
-JdzqCJMvjECTxBI2e3fZwqwIFqW5qRhmI/B6XpdcIitwfaKDMUlYmpTkvs/B/tdagBoduG
-3OOuU28ZHV6lkfYzUu4Z
+PQAAAAhzeWNhbW9yZQAAAAAAAAAGc2hhNTEyAAABlAAAAAxyc2Etc2hhMi01MTIAAAGAHC
+mU4leuH4s4bVClZe7pu93W2NtRupjNsXVbmeNnEmEkvEFF6IwHUJdoBaUA7t0BpvpQHRWG
+XWXxjQB1Dz8A2GZO4Jt0/Wen6dLfV5mUcAkMrioE0MAch2/5G/eKyN0Hj183dp2VXXNu47
+g8jyG0V+7KIsyC95jgl4giTkF8kgbH3BhUq6Oi4rpgmE3LoLISHn7Qa2G9Q8iVA0uHoWgg
+5/ZG1ppsGBf9eDZcH24JoKYNvLvaLS5vOXVg0kmWAqGyU2xnv3NPeCj708Cf2yFZXNLxbo
+r80BsWT9GmyN3fpqXqdYE76mzabBHzXuKwzDzKGsuNR+4H8pYHGP6kYovqMLLzGhZmdAB2
+RHc9LXixRN0vIW7Zf31k06ahFhxBdggWJYEzekU+/xofzOV0KT0OgSjWMwPK1yNT6Keu9v
+XkwFMrlc8XfRSYGRMKpu5MjEQ+nPkxUATF4no0+xD9AelrfN3L0/a9T12itZTUuo+lKntL
+vjFOAwLfDwJvx+cgQpg5
 -----END SSH SIGNATURE-----
