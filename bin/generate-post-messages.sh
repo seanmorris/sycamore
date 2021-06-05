@@ -17,12 +17,9 @@ FEED_DIR=docs/feeds/`date +%Y-%m`/`date +%d`;
 
 mkdir -p $FEED_DIR;
 
-[[ -z $SSH_KEY ]] && ${PRIVATE_KEY} > sycamore_key;
-[[ -z $SSH_KEY ]] || ${SSH_KEY} > sycamore_key;
-
 git diff HEAD~1 --name-only content/ | while read NAME; do {
 	STATIC_HOSTNAME=${STATIC_HOSTNAME} \
-	PRIVATE_KEY=/tmp/key \
+	PRIVATE_KEY=${PRIVATE_KEY} \
 		bash bin/generate-post-message.sh ${NAME};
 }; done;
 
