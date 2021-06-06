@@ -33,10 +33,11 @@ jobs:
           SCRIPT_NAME: sycamore-github-auth
 
       - name: Delete Existing Route
-        run:  'set -eux; curl -X DELETE https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/routes/$SCRIPT_NAME -H "Authorization: Bearer $CF_API_TOKEN"'
+        run:  'set -eux; curl -X DELETE https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/workers/routes/$SCRIPT_NAME -H "Authorization: Bearer $CF_API_TOKEN"'
         env:
           CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
           SCRIPT_NAME: sycamore_auth_route
 
       - name: Delete Existing KV Store
