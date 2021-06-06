@@ -1,0 +1,26 @@
+ul.messages li {
+	width: 30rem;
+	margin: auto;
+	border:  1px solid black;
+	padding: 1em;
+	margin-bottom: 1em;
+	list-style: none;
+}
+
+ul.messages li section:not(:last-child) {
+	margin-bottom: 1em;
+}
+
+ul.messages li section:last-child {
+	text-align: right;
+}
+
+ul.messages li span.author,
+ul.messages li span.body {
+	font-family: sans;
+}
+
+ul.messages li span.body {
+	font-size: 1.25rem;
+	white-space: pre-wrap;
+}
