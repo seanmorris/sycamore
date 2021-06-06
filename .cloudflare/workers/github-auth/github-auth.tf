@@ -48,12 +48,12 @@ resource "cloudflare_worker_script" "sycamore_auth_route" {
 
 	plain_text_binding {
 		name = "GHAPI_CLIENT_ID"
-		text = var.GHAPI_CLIENT_ID
+		text = "${var.GHAPI_CLIENT_ID}"
 	}
 
 	secret_text_binding {
 		name = "GHAPI_CLIENT_SECRET"
-		text = var.GHAPI_CLIENT_SECRET
+		text = "${var.GHAPI_CLIENT_SECRET}"
 	}
 }
 
