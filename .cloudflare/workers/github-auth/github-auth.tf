@@ -31,8 +31,8 @@ provider "cloudflare" {
 # 	title = "sycamore-github-auth-kv"
 # }
 
-resource "cloudflare_worker_script" "auth_route" {
-	name       = "sycamore-github-auth"
+resource "cloudflare_worker_script" "sycamore_auth_route" {
+	name       = "github-auth"
 	content    = file("index.js")
 
 	# kv_namespace_binding {
@@ -51,8 +51,8 @@ resource "cloudflare_worker_script" "auth_route" {
 	}
 }
 
-resource "cloudflare_worker_route" "auth_route" {
+resource "cloudflare_worker_route" "sycamore_auth_route" {
   zone_id     = "${var.CLOUDFLARE_ZONE_ID}"
   pattern     = "${var.CLOUDFLARE_HOSTNAME}/github-auth/*"
-  script_name = cloudflare_worker_script.auth_route.name
+  script_name = cloudflare_worker_script.sycamore_auth_route.name
 }
