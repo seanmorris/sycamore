@@ -34,7 +34,7 @@ jobs:
 
       - name: Delete Existing KV Store
         run: set -eux; sudo npm -g config set user root; sudo npm i -g @cloudflare/wrangler; NAMESPACE_ID=`wrangler kv:namespace list | jq -r ".[] | select(.title == \"$SCRIPT_NAME-kv\").id"`; echo $SCRIPT_NAME; echo $NAMESPACE_ID; test -z $NAMESPACE_ID || (yes 2>/dev/null | wrangler kv:namespace delete --namespace-id=$NAMESPACE_ID)
-        working-directory: '.cloudflare/workers/github-auth'
+        working-directory: .cloudflare/workers/github-auth
         env:
           CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -42,7 +42,7 @@ jobs:
 
       - name: Deploy
         run: set -eux; curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add - && sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main" && sudo apt-get update && sudo apt-get install terraform && terraform init '.' && terraform plan '.' && terraform apply --auto-approve .
-        working-directory: '.cloudflare/workers/github-auth'
+        working-directory: .cloudflare/workers/github-auth
         env:
           TF_VAR_CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           TF_VAR_CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
