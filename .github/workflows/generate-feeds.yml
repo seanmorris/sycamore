@@ -18,9 +18,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Generate the feeds.
-        run:  bash bin/generate-latest-feed.sh
-
       - run: echo "$PRIVATE_KEY" > ssh_key && chmod 600 ssh_key
         shell: bash
         env:
@@ -37,6 +34,9 @@ jobs:
           STATIC_HOSTNAME: ${{ secrets.STATIC_HOSTNAME }}
           AUTHOR: ${{ secrets.AUTHOR }}
           PRIVATE_KEY: ssh_key.pub
+
+      - name: Generate the feeds.
+        run:  bash bin/generate-latest-feed.sh
 
       - name: Generate feeds.
         run:  bash bin/index-feeds.sh

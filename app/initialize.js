@@ -1,51 +1,5 @@
 import { View } from 'curvature/base/View';
 
-const createPost = event => {
-	const raw = this.window.args.plain.args.content;
-
-	const branch  = 'master';
-	const message = 'Nynex self-edit.';
-	const content = btoa(unescape(encodeURIComponent(raw)));
-	const sha     = this.window.args.sha;
-
-	// const url = new URL(this.window.args.url).pathname;
-
-	const postChange  = {message, content, sha};
-
-	const headers = {
-		'Content-Type': 'application/json'
-		, Accept:       'application/vnd.github.v3.json'
-	};
-	
-	const gitHubToken = JSON.parse(sessionStorage.getItem('sycamore::github-token'));
-	const method = 'PUT';
-	const body   = JSON.stringify(postChange);
-	const mode   = 'cors';
-
-	const credentials = 'omit';
-
-	if(gitHubToken && gitHubToken.access_token)
-	{
-		headers.Authorization = `token ${gitHubToken.access_token}`;
-	}
-	else
-	{
-		return;
-	}
-
-	return fetch(
-		'https://api.github.com/repos/seanmorris/sycamore'
-			+ '/contents/'
-			+ this.window.args.filepath
-			+ (this.window.args.filepath ? '/' : '')
-			+ this.window.args.filename
-		, {method, headers, body, mode}
-	).then(response => response.json()
-	).then(json => {
-		this.window.args.sha = json.content.sha;
-	});
-}
-
 const view = View.from(
 	`
 	<section class = "app theme-[[profileTheme]]">
@@ -58,14 +12,14 @@ const view = View.from(
 			</div>
 			
 			<div class = "menu">
-				<a cv-on = "click:githubLoginClicked">
+				<a cv-on = "click:githubLoginClicked(event)">
 					<img class = "icon" src = "/user.svg">
 				</a>
 			</div>
 		
 		</section>
 
-		<form class = "post">
+		<form class = "post" cv-on = "submit:createPost(event)">
 			<input type = "text" placeholder = "Write a post!" />
 			<input type = "submit" />
 		</form>
@@ -120,7 +74,6 @@ view.githubLoginClicked = event => {
 		, `left=100,top=100,width=750,height=500,resizable=0,scrollbars=0,location=0,menubar=0,toolbar=0,status=0`
 	);
 
-
 	const gitHubListener = event => {
 		const token = JSON.parse(event.data);
 
@@ -150,7 +103,56 @@ view.githubLoginClicked = event => {
 	globalThis.loginChecker = setInterval(100, checkLogin);
 
 	window.addEventListener('message', gitHubListener, false);
-}
+};
+
+view.createPost = event => {
+	event.preventDefault();
+
+	const raw = 'API generated post!';
+
+	const branch  = 'master';
+	const message = 'Sycamore self-edit.';
+	const content = btoa(unescape(encodeURIComponent(raw)));
+	const sha     = '';
+
+	// const url = new URL(this.window.args.url).pathname;
+
+	const postChange  = {message, content, sha};
+
+	const headers = {
+		'Content-Type': 'application/json'
+		, Accept:       'application/vnd.github.v3.json'
+	};
+	
+	const gitHubToken = JSON.parse(sessionStorage.getItem('sycamore::github-token'));
+	const method = 'PUT';
+	const body   = JSON.stringify(postChange);
+	const mode   = 'cors';
+
+	const credentials = 'omit';
+
+	if(gitHubToken && gitHubToken.access_token)
+	{
+		headers.Authorization = `token ${gitHubToken.access_token}`;
+	}
+	else
+	{
+		return;
+	}
+
+	const filepath = 'messages';
+	const filename = 'new-post.md';
+
+	return fetch(
+		'https://api.github.com/repos/seanmorris/sycamore'
+			+ '/contents/'
+			+ (filepath)
+			+ (filepath ? '/' : '')
+			+ (filename)
+		, {method, headers, body, mode}
+	).then(response => response.json()
+	).then(response => console.log(response));
+};
 
 view.args.profileTheme = 'red-dots';
 view.args.profileName  = 'Sycamore Syndicator';

@@ -5934,8 +5934,6 @@ require.register("initialize.js", function(exports, require, module) {
 
 var _View = require("curvature/base/View");
 
-var _this = void 0;
-
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
 
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -5950,47 +5948,7 @@ function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o =
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-var createPost = function createPost(event) {
-  var raw = _this.window.args.plain.args.content;
-  var branch = 'master';
-  var message = 'Nynex self-edit.';
-  var content = btoa(unescape(encodeURIComponent(raw)));
-  var sha = _this.window.args.sha; // const url = new URL(this.window.args.url).pathname;
-
-  var postChange = {
-    message: message,
-    content: content,
-    sha: sha
-  };
-  var headers = {
-    'Content-Type': 'application/json',
-    Accept: 'application/vnd.github.v3.json'
-  };
-  var gitHubToken = JSON.parse(sessionStorage.getItem('sycamore::github-token'));
-  var method = 'PUT';
-  var body = JSON.stringify(postChange);
-  var mode = 'cors';
-  var credentials = 'omit';
-
-  if (gitHubToken && gitHubToken.access_token) {
-    headers.Authorization = "token ".concat(gitHubToken.access_token);
-  } else {
-    return;
-  }
-
-  return fetch('https://api.github.com/repos/seanmorris/sycamore' + '/contents/' + _this.window.args.filepath + (_this.window.args.filepath ? '/' : '') + _this.window.args.filename, {
-    method: method,
-    headers: headers,
-    body: body,
-    mode: mode
-  }).then(function (response) {
-    return response.json();
-  }).then(function (json) {
-    _this.window.args.sha = json.content.sha;
-  });
-};
-
-var view = _View.View.from("\n\t<section class = \"app theme-[[profileTheme]]\">\n\n\t\t<section class = \"header\">\n\t\t\n\t\t\t<div class = \"branding\">\n\t\t\t\t<h1><a cv-link = \"/\">[[profileName]]</a></h1>\n\t\t\t\t<small>A <a cv-link = \"https://github.com/seanmorris/sycamore\">Sycamore</a> [[profileType]]</small>\n\t\t\t</div>\n\t\t\t\n\t\t\t<div class = \"menu\">\n\t\t\t\t<a cv-on = \"click:githubLoginClicked\">\n\t\t\t\t\t<img class = \"icon\" src = \"/user.svg\">\n\t\t\t\t</a>\n\t\t\t</div>\n\t\t\n\t\t</section>\n\n\t\t<form class = \"post\">\n\t\t\t<input type = \"text\" placeholder = \"Write a post!\" />\n\t\t\t<input type = \"submit\" />\n\t\t</form>\n\n\t\t<ul class = \"messages\" cv-each = \"posts:post\">\n\n\t\t\t<li data-type = \"[[post.type]]\">\n\t\t\t\t\n\t\t\t\t<section class = \"author\">\n\t\t\t\t\t<div class = \"avatar\"></div>\n\t\t\t\t\t<span class = \"author\">[[post.author]]</span>\n\t\t\t\t</section>\n\t\t\t\t\n\t\t\t\t<section>\n\t\t\t\t\t<small title = \"[[post.timecode]]\">[[post.time]]</small>\n\t\t\t\t</section>\n\t\t\t\t\n\t\t\t\t<section>\n\t\t\t\t\t<span class = \"body\">[[post.slug]]</span>\n\t\t\t\t</section>\n\t\t\t\t\n\t\t\t\t<section>\n\t\t\t\t\t<a cv-link = \"/messages/[[post.name]]\">\n\t\t\t\t\t\t[[post.name]]\n\t\t\t\t\t\t<img class = \"icon\" src = \"/go.svg\" />\n\t\t\t\t\t</a>\n\t\t\t\t</section>\n\t\t\t\n\t\t\t</li>\n\t\t</ul>\n\n\t\t<section class = \"footer\">\n\t\t\t&copy; 2021 Sean Morris, All rights reserved.\n\t\t</section>\n\n\t</section>\n\t");
+var view = _View.View.from("\n\t<section class = \"app theme-[[profileTheme]]\">\n\n\t\t<section class = \"header\">\n\t\t\n\t\t\t<div class = \"branding\">\n\t\t\t\t<h1><a cv-link = \"/\">[[profileName]]</a></h1>\n\t\t\t\t<small>A <a cv-link = \"https://github.com/seanmorris/sycamore\">Sycamore</a> [[profileType]]</small>\n\t\t\t</div>\n\t\t\t\n\t\t\t<div class = \"menu\">\n\t\t\t\t<a cv-on = \"click:githubLoginClicked(event)\">\n\t\t\t\t\t<img class = \"icon\" src = \"/user.svg\">\n\t\t\t\t</a>\n\t\t\t</div>\n\t\t\n\t\t</section>\n\n\t\t<form class = \"post\" cv-on = \"submit:createPost(event)\">\n\t\t\t<input type = \"text\" placeholder = \"Write a post!\" />\n\t\t\t<input type = \"submit\" />\n\t\t</form>\n\n\t\t<ul class = \"messages\" cv-each = \"posts:post\">\n\n\t\t\t<li data-type = \"[[post.type]]\">\n\t\t\t\t\n\t\t\t\t<section class = \"author\">\n\t\t\t\t\t<div class = \"avatar\"></div>\n\t\t\t\t\t<span class = \"author\">[[post.author]]</span>\n\t\t\t\t</section>\n\t\t\t\t\n\t\t\t\t<section>\n\t\t\t\t\t<small title = \"[[post.timecode]]\">[[post.time]]</small>\n\t\t\t\t</section>\n\t\t\t\t\n\t\t\t\t<section>\n\t\t\t\t\t<span class = \"body\">[[post.slug]]</span>\n\t\t\t\t</section>\n\t\t\t\t\n\t\t\t\t<section>\n\t\t\t\t\t<a cv-link = \"/messages/[[post.name]]\">\n\t\t\t\t\t\t[[post.name]]\n\t\t\t\t\t\t<img class = \"icon\" src = \"/go.svg\" />\n\t\t\t\t\t</a>\n\t\t\t\t</section>\n\t\t\t\n\t\t\t</li>\n\t\t</ul>\n\n\t\t<section class = \"footer\">\n\t\t\t&copy; 2021 Sean Morris, All rights reserved.\n\t\t</section>\n\n\t</section>\n\t");
 
 view.githubLoginClicked = function (event) {
   var redirectUri = 'https://sycamore.seanmorr.is/github-auth/accept';
@@ -6021,6 +5979,49 @@ view.githubLoginClicked = function (event) {
 
   globalThis.loginChecker = setInterval(100, checkLogin);
   window.addEventListener('message', gitHubListener, false);
+};
+
+view.createPost = function (event) {
+  event.preventDefault();
+  var raw = 'API generated post!';
+  var branch = 'master';
+  var message = 'Sycamore self-edit.';
+  var content = btoa(unescape(encodeURIComponent(raw)));
+  var sha = ''; // const url = new URL(this.window.args.url).pathname;
+
+  var postChange = {
+    message: message,
+    content: content,
+    sha: sha
+  };
+  var headers = {
+    'Content-Type': 'application/json',
+    Accept: 'application/vnd.github.v3.json'
+  };
+  var gitHubToken = JSON.parse(sessionStorage.getItem('sycamore::github-token'));
+  var method = 'PUT';
+  var body = JSON.stringify(postChange);
+  var mode = 'cors';
+  var credentials = 'omit';
+
+  if (gitHubToken && gitHubToken.access_token) {
+    headers.Authorization = "token ".concat(gitHubToken.access_token);
+  } else {
+    return;
+  }
+
+  var filepath = 'messages';
+  var filename = 'new-post.md';
+  return fetch('https://api.github.com/repos/seanmorris/sycamore' + '/contents/' + filepath + (filepath ? '/' : '') + filename, {
+    method: method,
+    headers: headers,
+    body: body,
+    mode: mode
+  }).then(function (response) {
+    return response.json();
+  }).then(function (response) {
+    return console.log(response);
+  });
 };
 
 view.args.profileTheme = 'red-dots';
