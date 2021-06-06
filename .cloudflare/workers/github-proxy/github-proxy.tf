@@ -24,7 +24,7 @@ resource "cloudflare_workers_kv_namespace" "github-proxy-kv" {
 }
 
 resource "cloudflare_worker_script" "proxy_script" {
-	name    = "github-proxy"
+	name    = "sycamore-github-proxy"
 	content = file("index.js")
 
 	kv_namespace_binding {
