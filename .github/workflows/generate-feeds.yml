@@ -45,7 +45,7 @@ jobs:
         run: '[[ -f ./docs/feeds.list ]] &&  git add ./docs/feeds.list'
 
       - name: Add any feeds files.
-        run: '[[ -f ./docs/peers.list ]] &&  git add ./docs/feeds.list'
+        run: '[[ -f ./docs/peers.list ]] &&  git add ./docs/peers.list'
 
       - name: Add any feeds files.
         run:  git add ./docs/feeds/**
