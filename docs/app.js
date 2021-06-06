@@ -5934,6 +5934,8 @@ require.register("initialize.js", function(exports, require, module) {
 
 var _View = require("curvature/base/View");
 
+var _this = void 0;
+
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
 
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -5948,24 +5950,65 @@ function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o =
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-var gitHubListener = function gitHubListener(event) {
-  var token = event.data;
+var createPost = function createPost(event) {
+  var raw = _this.window.args.plain.args.content;
+  var branch = 'master';
+  var message = 'Nynex self-edit.';
+  var content = btoa(unescape(encodeURIComponent(raw)));
+  var sha = _this.window.args.sha; // const url = new URL(this.window.args.url).pathname;
 
-  if (token && token.access_token) {
-    sessionStorage.setItem('sycamore::github-token', JSON.stringify(token));
+  var postChange = {
+    message: message,
+    content: content,
+    sha: sha
+  };
+  var headers = {
+    'Content-Type': 'application/json',
+    Accept: 'application/vnd.github.v3.json'
+  };
+  var gitHubToken = JSON.parse(sessionStorage.getItem('sycamore::github-token'));
+  var method = 'PUT';
+  var body = JSON.stringify(postChange);
+  var mode = 'cors';
+  var credentials = 'omit';
+
+  if (gitHubToken && gitHubToken.access_token) {
+    headers.Authorization = "token ".concat(gitHubToken.access_token);
   } else {
-    sessionStorage.setItem('sycamore::github-token', '{}');
+    return;
   }
+
+  return fetch('https://api.github.com/repos/seanmorris/sycamore' + '/contents/' + _this.window.args.filepath + (_this.window.args.filepath ? '/' : '') + _this.window.args.filename, {
+    method: method,
+    headers: headers,
+    body: body,
+    mode: mode
+  }).then(function (response) {
+    return response.json();
+  }).then(function (json) {
+    _this.window.args.sha = json.content.sha;
+  });
 };
 
-var view = _View.View.from("\n\t<section class = \"app theme-[[profileTheme]]\">\n\n\t\t<section class = \"header\">\n\t\t\n\t\t\t<div class = \"branding\">\n\t\t\t\t<h1><a cv-link = \"/\">[[profileName]]</a></h1>\n\t\t\t\t<small>A <a cv-link = \"https://github.com/seanmorris/sycamore\">Sycamore</a> [[profileType]]</small>\n\t\t\t</div>\n\t\t\t\n\t\t\t<div class = \"menu\">\n\t\t\t\t<a cv-on = \"click:githubLoginClicked\">\n\t\t\t\t\t<img class = \"icon\" src = \"/user.svg\">\n\t\t\t\t</a>\n\t\t\t</div>\n\t\t\n\t\t</section>\n\n\t\t<form class = \"post\">\n\t\t\t<input type = \"text\" placeholder = \"Write a post!\" />\n\t\t\t<input type = \"submit\" />\n\t\t</form>\n\n\t\t<ul class = \"messages\" cv-each = \"posts:post\">\n\n\t\t\t<li data-type = \"[[post.type]]\">\n\t\t\t\t\n\t\t\t\t<section class = \"author\">\n\t\t\t\t\t<div class = \"avatar\"></div>\n\t\t\t\t\t<span class = \"author\">[[post.author]]</span>\n\t\t\t\t</section>\n\t\t\t\t\n\t\t\t\t<section>\n\t\t\t\t\t<small title = \"[[post.timecode]]\">[[post.time]]</small>\n\t\t\t\t</section>\n\t\t\t\t\n\t\t\t\t<section>\n\t\t\t\t\t<span class = \"body\">[[post.slug]]</span>\n\t\t\t\t</section>\n\t\t\t\t\n\t\t\t\t<section>\n\t\t\t\t\t<a cv-link = \"/messages/[[post.name]]\">\n\t\t\t\t\t\t[[post.name]]\n\t\t\t\t\t\t<img class = \"icon\" src = \"/go.svg\" />\n\t\t\t\t\t</a>\n\t\t\t\t</section>\n\t\t\t\n\t\t\t</li>\n\t\t</ul>\n\n\t</section>\n\t");
+var view = _View.View.from("\n\t<section class = \"app theme-[[profileTheme]]\">\n\n\t\t<section class = \"header\">\n\t\t\n\t\t\t<div class = \"branding\">\n\t\t\t\t<h1><a cv-link = \"/\">[[profileName]]</a></h1>\n\t\t\t\t<small>A <a cv-link = \"https://github.com/seanmorris/sycamore\">Sycamore</a> [[profileType]]</small>\n\t\t\t</div>\n\t\t\t\n\t\t\t<div class = \"menu\">\n\t\t\t\t<a cv-on = \"click:githubLoginClicked\">\n\t\t\t\t\t<img class = \"icon\" src = \"/user.svg\">\n\t\t\t\t</a>\n\t\t\t</div>\n\t\t\n\t\t</section>\n\n\t\t<form class = \"post\">\n\t\t\t<input type = \"text\" placeholder = \"Write a post!\" />\n\t\t\t<input type = \"submit\" />\n\t\t</form>\n\n\t\t<ul class = \"messages\" cv-each = \"posts:post\">\n\n\t\t\t<li data-type = \"[[post.type]]\">\n\t\t\t\t\n\t\t\t\t<section class = \"author\">\n\t\t\t\t\t<div class = \"avatar\"></div>\n\t\t\t\t\t<span class = \"author\">[[post.author]]</span>\n\t\t\t\t</section>\n\t\t\t\t\n\t\t\t\t<section>\n\t\t\t\t\t<small title = \"[[post.timecode]]\">[[post.time]]</small>\n\t\t\t\t</section>\n\t\t\t\t\n\t\t\t\t<section>\n\t\t\t\t\t<span class = \"body\">[[post.slug]]</span>\n\t\t\t\t</section>\n\t\t\t\t\n\t\t\t\t<section>\n\t\t\t\t\t<a cv-link = \"/messages/[[post.name]]\">\n\t\t\t\t\t\t[[post.name]]\n\t\t\t\t\t\t<img class = \"icon\" src = \"/go.svg\" />\n\t\t\t\t\t</a>\n\t\t\t\t</section>\n\t\t\t\n\t\t\t</li>\n\t\t</ul>\n\n\t\t<section class = \"footer\">\n\t\t\t&copy; 2021 Sean Morris, All rights reserved.\n\t\t</section>\n\n\t</section>\n\t");
 
 view.githubLoginClicked = function (event) {
   var redirectUri = 'https://sycamore.seanmorr.is/github-auth/accept';
   var clientId = '4c8f4209d3c4ad741d2c';
   var state = Math.random().toString(36);
   var loginWindow = window.open('https://github.com/login/oauth/authorize' + '?redirect_uri=' + redirectUri + '&client_id=' + clientId + '&scope=public_repo' + '&state=' + state, "github-login", "left=100,top=100,width=750,height=500,resizable=0,scrollbars=0,location=0,menubar=0,toolbar=0,status=0");
-  window.addEventListener('message', gitHubListener, false);
+
+  var gitHubListener = function gitHubListener(event) {
+    var token = JSON.parse(event.data);
+
+    if (token && token.access_token) {
+      sessionStorage.setItem('sycamore::github-token', JSON.stringify(token));
+    } else {
+      sessionStorage.setItem('sycamore::github-token', '{}');
+    }
+
+    loginWindow.close();
+  };
 
   var checkLogin = function checkLogin() {
     if (!loginWindow.closed) {
@@ -5977,6 +6020,7 @@ view.githubLoginClicked = function (event) {
   };
 
   globalThis.loginChecker = setInterval(100, checkLogin);
+  window.addEventListener('message', gitHubListener, false);
 };
 
 view.args.profileTheme = 'red-dots';

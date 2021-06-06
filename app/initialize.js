@@ -1,18 +1,50 @@
 import { View } from 'curvature/base/View';
 
-const gitHubListener = event => {
+const createPost = event => {
+	const raw = this.window.args.plain.args.content;
 
-	const token = event.data;
+	const branch  = 'master';
+	const message = 'Nynex self-edit.';
+	const content = btoa(unescape(encodeURIComponent(raw)));
+	const sha     = this.window.args.sha;
 
-	if(token && token.access_token)
+	// const url = new URL(this.window.args.url).pathname;
+
+	const postChange  = {message, content, sha};
+
+	const headers = {
+		'Content-Type': 'application/json'
+		, Accept:       'application/vnd.github.v3.json'
+	};
+	
+	const gitHubToken = JSON.parse(sessionStorage.getItem('sycamore::github-token'));
+	const method = 'PUT';
+	const body   = JSON.stringify(postChange);
+	const mode   = 'cors';
+
+	const credentials = 'omit';
+
+	if(gitHubToken && gitHubToken.access_token)
 	{
-		sessionStorage.setItem('sycamore::github-token', JSON.stringify(token));
+		headers.Authorization = `token ${gitHubToken.access_token}`;
 	}
 	else
 	{
-		sessionStorage.setItem('sycamore::github-token', '{}');
+		return;
 	}
-};
+
+	return fetch(
+		'https://api.github.com/repos/seanmorris/sycamore'
+			+ '/contents/'
+			+ this.window.args.filepath
+			+ (this.window.args.filepath ? '/' : '')
+			+ this.window.args.filename
+		, {method, headers, body, mode}
+	).then(response => response.json()
+	).then(json => {
+		this.window.args.sha = json.content.sha;
+	});
+}
 
 const view = View.from(
 	`
@@ -65,6 +97,10 @@ const view = View.from(
 			</li>
 		</ul>
 
+		<section class = "footer">
+			&copy; 2021 Sean Morris, All rights reserved.
+		</section>
+
 	</section>
 	`
 );
@@ -84,7 +120,21 @@ view.githubLoginClicked = event => {
 		, `left=100,top=100,width=750,height=500,resizable=0,scrollbars=0,location=0,menubar=0,toolbar=0,status=0`
 	);
 
-	window.addEventListener('message', gitHubListener, false);
+
+	const gitHubListener = event => {
+		const token = JSON.parse(event.data);
+
+		if(token && token.access_token)
+		{
+			sessionStorage.setItem('sycamore::github-token', JSON.stringify(token));
+		}
+		else
+		{
+			sessionStorage.setItem('sycamore::github-token', '{}');
+		}
+
+		loginWindow.close();
+	};
 
 	const checkLogin = () => {
 		if(!loginWindow.closed)
@@ -98,6 +148,8 @@ view.githubLoginClicked = event => {
 	};
 
 	globalThis.loginChecker = setInterval(100, checkLogin);
+
+	window.addEventListener('message', gitHubListener, false);
 }
 
 view.args.profileTheme = 'red-dots';

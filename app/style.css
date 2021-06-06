@@ -20,9 +20,13 @@ section.app.theme-maple-tree {
 	background-image: url(/maple-backdrop.jpg);	
 }
 
-section.header {
+section.header,
+section.footer {
 	background-color: black;
-	color: white;
+	color: white;	
+}
+
+section.header {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
@@ -30,6 +34,15 @@ section.header {
 	position: sticky;
 	top: 0;
 	z-index: 10;
+}
+
+section.footer {
+	padding: 1em;
+	height: 8em;
+	margin-top: 8em;
+	text-align: right;
+	font-size: 0.75em;
+	color: rgba(255, 255, 255, 0.75);
 }
 
 section.header a {
