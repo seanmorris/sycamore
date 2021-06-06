@@ -1,4 +1,122 @@
-import { View } from 'curvature/base/View';
+import { Bindable } from 'curvature/base/Bindable';
+import { View     } from 'curvature/base/View';
+import { Model    } from 'curvature/model/Model';
+import { Database } from 'curvature/model/Database';
+
+export class MessageDatabase extends Database
+{
+	_version_1(database)
+	{
+		const messageStore = this.createObjectStore('messages', {keyPath: 'id', autoIncrement: true});
+
+		messageStore.createIndex('url', ['header.authority', 'header.name'], {unique: true});
+		messageStore.createIndex('issued', 'header.issued', {unique: false});
+	}
+}
+
+
+class MessageModel extends Model {
+	static get keyProps() { return ['url', 'class'] }
+	get authority() { return this.header && this.header.authority }
+	get issued() { return this.header && this.header.issued }
+	get name() { return this.header && this.header.name }
+	get url()  { return this.authority + '/' + this.name }
+	
+	static fromString(messageBody)
+	{
+		const slug = messageBody.substring(0, 3);
+		
+		const headerHex = messageBody.substr(3, 10);
+		const headerLen = parseInt(headerHex);
+		const header    = messageBody.substr(14, headerLen);
+		
+		const bodyStart = headerLen + 25;
+
+		const bodyHex = messageBody.substr(headerLen + 14, 10);
+		const bodyLen = parseInt(bodyHex);
+		const body    = messageBody.substr(bodyStart, bodyLen);
+
+		const signatureStart = bodyStart + bodyLen + 1;
+		
+		const signatureHex = messageBody.substr(signatureStart, 10);
+		const signatureLen = parseInt(signatureHex);
+		const signature    = messageBody.substr(bodyStart + bodyLen + 12);
+
+		// if(this.header && this.header.issued && this.header.issued > header.issued)
+		// {
+		// 	return false;
+		// }
+
+		const headerObject = JSON.parse(header);
+
+		const url = headerObject.authority + '/' + headerObject.name;
+
+		const skeleton = {class: 'message', header: headerObject, body, signature};
+
+		const message = new MessageModel;
+
+		message.consume(skeleton);
+
+		// console.log(message);
+
+		return message;
+	}
+
+	signature;
+	header;
+	body;
+	id;
+};
+
+const posts = new Set;
+
+const loadPosts = messageBytes => {
+
+	const message = MessageModel.fromString(messageBytes);
+
+	if(!message.url || posts.has(message.url))
+	{
+		return;
+	}
+
+	const viewArgs = {
+		name:       message.name
+		, type:     message.header.type
+		, time:     new Date( message.header.issued * 1000 )
+		, timecode: message.header.issued
+		, author:   message.header.author
+		, slug:     message.header.type.substr(0, 10) === 'text/plain' 
+			? message.body.substr(0, 140)
+			: null
+	};
+
+	view.args.posts.push(viewArgs);
+
+	posts.add(message.url);
+
+	const query  = {
+		store: 'messages',
+		index: 'url',
+		range: message.url,
+		type:  MessageModel
+	};
+
+	MessageDatabase.open('messages', 1).then(database => {
+		database.select(query).one().then(result => {
+			const record = result.record;
+			if (!record)
+			{
+				const message = MessageModel.fromString(messageBytes);
+				database.insert('messages', message);
+			}
+			else
+			{
+				record.consume(message);
+				database.update('messages', record);
+			}
+		}).catch(error => console.log(error));
+	});
+};
 
 const view = View.from(
 	`
@@ -19,37 +137,39 @@ const view = View.from(
 		
 		</section>
 
-		<form class = "post" cv-on = "submit:createPost(event)">
-			<input type = "text" placeholder = "Write a post!" />
-			<input type = "submit" />
-		</form>
+		<section class = "body">
+			<form class = "post" cv-on = "submit:createPost(event)">
+				<input type = "text" placeholder = "Write a post!" cv-bind = "inputPost" />
+				<input type = "submit" />
+			</form>
 
-		<ul class = "messages" cv-each = "posts:post">
+			<ul class = "messages" cv-each = "posts:post">
 
-			<li data-type = "[[post.type]]">
+				<li data-type = "[[post.type]]">
+					
+					<section class = "author">
+						<div class = "avatar"></div>
+						<span class = "author">[[post.author]]</span>
+					</section>
+					
+					<section>
+						<small title = "[[post.timecode]]">[[post.time]]</small>
+					</section>
+					
+					<section>
+						<span class = "body">[[post.slug]]</span>
+					</section>
+					
+					<section>
+						<a cv-link = "/messages/[[post.name]]">
+							[[post.name]]
+							<img class = "icon" src = "/go.svg" />
+						</a>
+					</section>
 				
-				<section class = "author">
-					<div class = "avatar"></div>
-					<span class = "author">[[post.author]]</span>
-				</section>
-				
-				<section>
-					<small title = "[[post.timecode]]">[[post.time]]</small>
-				</section>
-				
-				<section>
-					<span class = "body">[[post.slug]]</span>
-				</section>
-				
-				<section>
-					<a cv-link = "/messages/[[post.name]]">
-						[[post.name]]
-						<img class = "icon" src = "/go.svg" />
-					</a>
-				</section>
-			
-			</li>
-		</ul>
+				</li>
+			</ul>
+		</section>
 
 		<section class = "footer">
 			&copy; 2021 Sean Morris, All rights reserved.
@@ -108,14 +228,17 @@ view.githubLoginClicked = event => {
 view.createPost = event => {
 	event.preventDefault();
 
-	const raw = 'API generated post!';
+	if(!view.args.inputPost)
+	{
+		return;
+	}
+
+	const raw = view.args.inputPost;
 
 	const branch  = 'master';
 	const message = 'Sycamore self-edit.';
 	const content = btoa(unescape(encodeURIComponent(raw)));
 	const sha     = '';
-
-	// const url = new URL(this.window.args.url).pathname;
 
 	const postChange  = {message, content, sha};
 
@@ -141,7 +264,7 @@ view.createPost = event => {
 	}
 
 	const filepath = 'messages';
-	const filename = 'new-post.md';
+	const filename = `post-${Date.now()}.md`;
 
 	return fetch(
 		'https://api.github.com/repos/seanmorris/sycamore'
@@ -151,7 +274,9 @@ view.createPost = event => {
 			+ (filename)
 		, {method, headers, body, mode}
 	).then(response => response.json()
-	).then(response => console.log(response));
+	).then(response => {
+		view.args.inputPost = '';
+	});
 };
 
 view.args.profileTheme = 'red-dots';
@@ -184,38 +309,8 @@ fetch('/feeds.list').then(response => response.text()).then(feedList => {
 
 				fetch('/messages/' + messageUrl + '.smsg').then(response => response.text()).then(messageBody => {
 					
-					const slug      = messageBody.substring(0, 3);
+					loadPosts(messageBody);
 					
-					const headerHex = messageBody.substr(3, 10);
-					const headerLen = parseInt(headerHex);
-					const header    = messageBody.substr(14, headerLen);
-					
-					const bodyStart = headerLen + 25;
-
-					const bodyHex = messageBody.substr(headerLen + 14, 10);
-					const bodyLen = parseInt(bodyHex);
-					const body    = messageBody.substr(bodyStart, bodyLen);
-
-					const signatureStart = bodyStart + bodyLen + 1;
-					
-					const signatureHex = messageBody.substr(signatureStart, 10);
-					const signatureLen = parseInt(signatureHex);
-					const signature    = messageBody.substr(bodyStart + bodyLen + 12);
-
-					const message = {header: JSON.parse(header), body, signature};
-
-					console.log(message.header.issued * 1000);
-
-					view.args.posts.push({
-						name:       message.header.name
-						, type:     message.header.type
-						, time:     new Date( message.header.issued * 1000 )
-						, timecode: message.header.issued
-						, author:   message.header.author
-						, slug:     message.header.type.substr(0, 10) === 'text/plain' 
-							? message.body.substr(0, 140)
-							: null
-					});
 				});
 
 			}

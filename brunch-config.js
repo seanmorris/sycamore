@@ -1,9 +1,11 @@
-module.exports = {
-	files: {
-		javascripts: {joinTo: 'app.js'}
-		, stylesheets: {joinTo: 'app.css'}
-	}
-	, plugins: {
+const { exec } = require('child_process');
+
+exports.files = {
+	javascripts: {joinTo: 'app.js'}
+	, stylesheets: {joinTo: 'app.css'}
+}
+
+exports.plugins = {
 		babel: {
 			presets:   ['@babel/preset-env']
 			, plugins: ["@babel/plugin-proposal-class-properties"]
@@ -13,19 +15,20 @@ module.exports = {
 			wrapper: content => `module.exports = ${JSON.stringify(content)}`
 		}
 	}
-	, paths: {
-		public: './docs'
-	}
-	, watcher: {
-		awaitWriteFinish: true
-	}
+
+exports.paths = {
+	public: './docs'
+}
+
+exports.watcher = {
+	awaitWriteFinish: true
 };
 
 exports.hooks = {
 	preCompile: () => {
 		console.log('About to compile...');
 		exec(
-			`pushd ../curvature-2 && npm link && popd && npm link curvature`
+			`cd ../curvature-2 && npm link && cd ../sycamore && npm link curvature`
 			, (err, stdout, stderr)=>{
 				console.log(err);
 				console.log(stdout);

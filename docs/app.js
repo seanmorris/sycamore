@@ -5929,10 +5929,918 @@ Object.defineProperty(PromiseMixin, 'Accept', {
 });
   })();
 });
+
+require.register("curvature/model/Database.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "curvature");
+  (function() {
+    "use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Database = void 0;
+
+var _Bindable = require("../base/Bindable");
+
+var _Mixin = require("../base/Mixin");
+
+var _EventTargetMixin = require("../mixin/EventTargetMixin");
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+var BeforeWrite = Symbol('BeforeWrite');
+var AfterWrite = Symbol('AfterWrite');
+var BeforeDelete = Symbol('BeforeDelete');
+var AfterDelete = Symbol('AfterDelete');
+var BeforeInsert = Symbol('BeforeInsert');
+var AfterInsert = Symbol('AfterInsert');
+var BeforeUpdate = Symbol('BeforeUpdate');
+var AfterUpdate = Symbol('AfterUpdate');
+var BeforeRead = Symbol('BeforeRead');
+var AfterRead = Symbol('AfterRead');
+var PrimaryKey = Symbol('PrimaryKey');
+var Connection = Symbol('Connection');
+var Instances = Symbol('Instances');
+var HighWater = Symbol('HighWater');
+var Metadata = Symbol('Metadata');
+var Timers = Symbol('Timers');
+var Target = Symbol('Target');
+var Store = Symbol('Store');
+var Fetch = Symbol('Each');
+var Name = Symbol('Name');
+var Bank = Symbol('Bank');
+
+var Database = /*#__PURE__*/function (_Mixin$with) {
+  _inherits(Database, _Mixin$with);
+
+  var _super = _createSuper(Database);
+
+  function Database(connection) {
+    var _this;
+
+    _classCallCheck(this, Database);
+
+    _this = _super.call(this);
+    Object.defineProperty(_assertThisInitialized(_this), Connection, {
+      value: connection
+    });
+    Object.defineProperty(_assertThisInitialized(_this), Name, {
+      value: connection.name
+    });
+    Object.defineProperty(_assertThisInitialized(_this), Timers, {
+      value: {}
+    });
+    Object.defineProperty(_assertThisInitialized(_this), Metadata, {
+      value: {}
+    });
+    Object.defineProperty(_assertThisInitialized(_this), Bank, {
+      value: {}
+    });
+    return _this;
+  }
+
+  _createClass(Database, [{
+    key: "select",
+    value: function select(_ref) {
+      var _this2 = this;
+
+      var store = _ref.store,
+          index = _ref.index,
+          _ref$range = _ref.range,
+          range = _ref$range === void 0 ? null : _ref$range,
+          _ref$direction = _ref.direction,
+          direction = _ref$direction === void 0 ? 'next' : _ref$direction,
+          _ref$limit = _ref.limit,
+          limit = _ref$limit === void 0 ? 0 : _ref$limit,
+          _ref$offset = _ref.offset,
+          offset = _ref$offset === void 0 ? 0 : _ref$offset,
+          _ref$type = _ref.type,
+          type = _ref$type === void 0 ? false : _ref$type,
+          _ref$origin = _ref.origin,
+          origin = _ref$origin === void 0 ? undefined : _ref$origin;
+      var t = this[Connection].transaction(store, "readonly");
+      var s = t.objectStore(store);
+      var i = index ? s.index(index) : s;
+      return {
+        each: this[Fetch](type, i, direction, range, limit, offset, origin),
+        one: this[Fetch](type, i, direction, range, 1, offset, origin),
+        then: function then(c) {
+          return _this2[Fetch](type, i, direction, range, limit, offset, origin)(function (e) {
+            return e;
+          }).then(c);
+        }
+      };
+    }
+  }, {
+    key: "insert",
+    value: function insert(storeName, record) {
+      var _this3 = this;
+
+      var origin = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+      return new Promise(function (accept, reject) {
+        _this3[Bank][storeName] = _this3[Bank][storeName] || {};
+
+        var trans = _this3[Connection].transaction([storeName], 'readwrite');
+
+        var store = trans.objectStore(storeName);
+        var bank = _this3[Bank][storeName];
+        record = _Bindable.Bindable.make(record);
+        var detail = {
+          database: _this3[Name],
+          record: record,
+          store: storeName,
+          type: 'write',
+          subType: 'insert',
+          origin: origin
+        };
+        var beforeWriteResult = record[Database.BeforeWrite] ? record[Database.BeforeWrite](detail) : null;
+        var beforeInsertResult = record[Database.BeforeInsert] ? record[Database.BeforeInsert](detail) : null;
+        var request = store.add(Object.assign({}, _Bindable.Bindable.shuck(record)));
+
+        if (beforeWriteResult === false || beforeInsertResult === false) {
+          return;
+        }
+
+        request.onerror = function (error) {
+          _this3.dispatchEvent(new CustomEvent('writeError', {
+            detail: detail
+          }));
+
+          reject(error);
+        };
+
+        request.onsuccess = function (event) {
+          var pk = event.target.result;
+          bank[pk] = record;
+          var cancelable = true;
+          detail.key = Database.getPrimaryKey(record);
+
+          var eventResult = _this3.dispatchEvent(new CustomEvent('write', {
+            cancelable: cancelable,
+            detail: detail
+          }));
+
+          if (eventResult) {
+            record[PrimaryKey] = Symbol["for"](pk);
+
+            if (!_this3[Metadata][storeName]) {
+              _this3[Metadata][storeName] = _this3.getStoreMeta(storeName, 'store', {});
+            }
+
+            if (_this3[Metadata][storeName]) {
+              var currentHighMark = _this3.checkHighWaterMark(storeName, record);
+
+              var currentLowMark = _this3.checkLowWaterMark(storeName, record);
+
+              var metadata = _this3[Metadata][storeName];
+              var recordMark = record[metadata.highWater];
+
+              if (origin.setHighWater && currentHighMark < recordMark) {
+                _this3.setHighWaterMark(storeName, record, origin, 'insert');
+              }
+
+              if (origin.setLowWater && currentLowMark > recordMark) {
+                _this3.setLowWaterMark(storeName, record, origin, 'insert');
+              }
+            }
+
+            trans.commit && trans.commit();
+            record[Database.AfterInsert] && record[Database.AfterInsert](detail);
+            record[Database.AfterWrite] && record[Database.AfterWrite](detail);
+          } else {
+            trans.abort();
+          }
+
+          accept(record);
+        };
+      });
+    }
+  }, {
+    key: "update",
+    value: function update(storeName, record) {
+      var _this4 = this;
+
+      var origin = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+      if (!record[PrimaryKey]) {
+        throw Error('Value provided is not a DB record!');
+      }
+
+      return new Promise(function (accept, reject) {
+        var trans = _this4[Connection].transaction([storeName], 'readwrite');
+
+        var store = trans.objectStore(storeName);
+        var detail = {
+          database: _this4[Name],
+          key: Database.getPrimaryKey(record),
+          record: record,
+          store: storeName,
+          type: 'write',
+          subType: 'update',
+          origin: origin
+        };
+        record[Database.AfterInsert] && record[Database.AfterInsert](detail);
+        record[Database.AfterWrite] && record[Database.AfterWrite](detail);
+        var beforeWriteResult = record[Database.BeforeWrite] ? record[Database.BeforeWrite](detail) : null;
+        var beforeUpdateResult = record[Database.BeforeUpdate] ? record[Database.BeforeUpdate](detail) : null;
+
+        if (beforeWriteResult === false || beforeUpdateResult === false) {
+          return;
+        }
+
+        var request = store.put(Object.assign({}, _Bindable.Bindable.shuck(record)));
+
+        request.onerror = function (error) {
+          _this4.dispatchEvent(new CustomEvent('writeError', {
+            detail: detail
+          }));
+
+          reject(error);
+        };
+
+        request.onsuccess = function (event) {
+          var cancelable = true;
+
+          var eventResult = _this4.dispatchEvent(new CustomEvent('write', {
+            cancelable: cancelable,
+            detail: detail
+          }));
+
+          if (eventResult) {
+            if (!_this4[Metadata][storeName]) {
+              _this4[Metadata][storeName] = _this4.getStoreMeta(storeName, 'store', {});
+            }
+
+            if (_this4[Metadata][storeName]) {
+              var currentHighMark = _this4.checkHighWaterMark(storeName, record);
+
+              var currentLowMark = _this4.checkLowWaterMark(storeName, record);
+
+              var metadata = _this4[Metadata][storeName];
+              var recordMark = record[metadata.highWater];
+
+              if (origin.setHighWater && currentHighMark < recordMark) {
+                _this4.setHighWaterMark(storeName, record, origin, 'insert');
+              }
+
+              if (origin.setLowWater && currentLowMark > recordMark) {
+                _this4.setLowWaterMark(storeName, record, origin, 'insert');
+              }
+            }
+
+            trans.commit && trans.commit();
+          } else {
+            trans.abort();
+          }
+
+          accept(event);
+        };
+      });
+    }
+  }, {
+    key: "delete",
+    value: function _delete(storeName, record) {
+      var _this5 = this;
+
+      var origin = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : undefined;
+
+      if (!record[PrimaryKey]) {
+        throw Error('Value provided is not a DB record!');
+      }
+
+      return new Promise(function (accept, reject) {
+        var trans = _this5[Connection].transaction([storeName], 'readwrite');
+
+        var store = trans.objectStore(storeName);
+        var detail = {
+          database: _this5[Name],
+          record: record,
+          key: Database.getPrimaryKey(record),
+          store: storeName,
+          type: 'write',
+          subType: 'delete',
+          origin: origin
+        };
+        var beforeDeleteResult = record[Database.BeforeDelete] ? record[Database.BeforeDelete](detail) : null;
+
+        if (beforeDeleteResult === false) {
+          return;
+        }
+
+        var request = store["delete"](Number(record[PrimaryKey].description));
+        record[PrimaryKey] = undefined;
+        record[Database.AfterDelete] && record[Database.AfterDelete](detail);
+
+        request.onerror = function (error) {
+          detail.original = error;
+          var deleteEvent = new CustomEvent('writeError', {
+            detail: detail
+          });
+
+          _this5.dispatchEvent(deleteEvent);
+
+          reject(error);
+        };
+
+        request.onsuccess = function (event) {
+          detail.original = event;
+          var writeEvent = new CustomEvent('write', {
+            detail: detail
+          });
+
+          _this5.dispatchEvent(writeEvent);
+
+          trans.commit && trans.commit();
+          accept(writeEvent);
+        };
+      });
+    }
+  }, {
+    key: "clear",
+    value: function clear(storeName) {
+      var _this6 = this;
+
+      return new Promise(function (accept, reject) {
+        var trans = _this6[Connection].transaction([storeName], 'readwrite');
+
+        var store = trans.objectStore(storeName);
+        var request = store.clear();
+        var detail = {
+          database: _this6[Name],
+          store: storeName,
+          type: 'write',
+          subType: 'clear',
+          origin: origin
+        };
+
+        request.onerror = function (error) {
+          detail.original = error;
+          var deleteEvent = new CustomEvent('writeError', {
+            detail: detail
+          });
+
+          _this6.dispatchEvent(deleteEvent);
+
+          reject(error);
+        };
+
+        request.onsuccess = function (event) {
+          detail.original = event;
+          var writeEvent = new CustomEvent('write', {
+            detail: detail
+          });
+
+          _this6.dispatchEvent(writeEvent);
+
+          trans.commit && trans.commit();
+          accept(writeEvent);
+        };
+      });
+    }
+  }, {
+    key: "listStores",
+    value: function listStores() {
+      return _toConsumableArray(this[Connection].objectStoreNames);
+    }
+  }, {
+    key: "listIndexes",
+    value: function listIndexes(storeName) {
+      var trans = this[Connection].transaction([storeName]);
+      var store = trans.objectStore(storeName);
+      return _toConsumableArray(store.indexNames);
+    }
+  }, {
+    key: Fetch,
+    value: function value(type, index, direction, range, limit, offset, origin) {
+      var _this7 = this;
+
+      return function (callback) {
+        return new Promise(function (accept, reject) {
+          var i = 0;
+          var request = index.openCursor(range, direction);
+          request.addEventListener('success', function (event) {
+            var cursor = event.target.result;
+
+            if (!cursor) {
+              return accept({
+                record: null,
+                result: null,
+                index: i
+              });
+            }
+
+            _this7[Bank][storeName] = _this7[Bank][storeName] || {};
+            var bank = _this7[Bank][storeName];
+            var pk = cursor.primaryKey;
+            var value = type ? type.from(cursor.value) : cursor.value;
+
+            var bindableValue = _Bindable.Bindable.makeBindable(value);
+
+            var detail = {
+              database: _this7[Name],
+              key: Database.getPrimaryKey(bindableValue),
+              record: value,
+              store: index.name,
+              type: 'read',
+              subType: 'select',
+              origin: origin
+            };
+            var beforeReadResult = value[Database.BeforeRead] ? value[Database.BeforeRead](detail) : null;
+
+            if (offset > i++ || beforeReadResult === false) {
+              return cursor["continue"]();
+            }
+
+            if (bank[pk]) {
+              Object.assign(bank[pk], value);
+            } else {
+              value[PrimaryKey] = Symbol["for"](pk);
+              bank[pk] = value;
+            }
+
+            var source = cursor.source;
+            var storeName = source.objectStore ? source.objectStore.name : index.name;
+            bank[pk][Database.AfterRead] && bank[pk][Database.AfterRead](detail);
+            detail.record = value;
+            var cancelable = true;
+
+            var eventResult = _this7.dispatchEvent(new CustomEvent('read', {
+              detail: detail,
+              cancelable: cancelable
+            }));
+
+            if (eventResult) {
+              var record = type ? type.from(bank[pk]) : bank[pk];
+              record[PrimaryKey] = Symbol["for"](pk);
+              var result = callback ? callback(record, i) : record;
+
+              if (limit && i - offset >= limit) {
+                offset += limit;
+                return accept({
+                  record: record,
+                  result: result,
+                  index: i
+                });
+              }
+            }
+
+            cursor["continue"]();
+          });
+        });
+      };
+    }
+  }, {
+    key: "setStoreMeta",
+    value: function setStoreMeta(storeName, key, value) {
+      localStorage.setItem("::::cvdb::".concat(storeName, "::").concat(key), JSON.stringify(value));
+    }
+  }, {
+    key: "getStoreMeta",
+    value: function getStoreMeta(storeName, key) {
+      var notFound = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+      var source = localStorage.getItem("::::cvdb::".concat(storeName, "::").concat(key));
+      var value = source !== null ? JSON.parse(source) : notFound;
+
+      if (value === null) {
+        return notFound;
+      }
+
+      return value;
+    }
+  }, {
+    key: "createObjectStore",
+    value: function createObjectStore(storeName, options) {
+      var eventLog = this[Connection].createObjectStore(storeName, options);
+      this.setStoreMeta(storeName, 'store', options);
+      return eventLog;
+    }
+  }, {
+    key: "deleteObjectStore",
+    value: function deleteObjectStore(storeName) {
+      return this[Connection].deleteObjectStore(storeName);
+    }
+  }, {
+    key: "checkHighWaterMark",
+    value: function checkHighWaterMark(storeName, record) {
+      var origin = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : undefined;
+      var currentMark = this.getStoreMeta(storeName, 'highWater', 0);
+      return currentMark;
+    }
+  }, {
+    key: "setHighWaterMark",
+    value: function setHighWaterMark(storeName, record) {
+      var origin = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : undefined;
+      var subType = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : undefined;
+      var metadata = this[Metadata][storeName];
+      var recordMark = record[metadata.highWater];
+      var currentMark = this.getStoreMeta(storeName, 'highWater', 0);
+      this.setStoreMeta(storeName, 'highWater', recordMark);
+      this.dispatchEvent(new CustomEvent('highWaterMoved', {
+        detail: {
+          database: this[Name],
+          record: record,
+          store: storeName,
+          type: 'highWaterMoved',
+          subType: subType,
+          origin: origin,
+          oldValue: currentMark,
+          value: recordMark
+        }
+      }));
+    }
+  }, {
+    key: "checkLowWaterMark",
+    value: function checkLowWaterMark(storeName, record) {
+      var origin = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : undefined;
+      var currentMark = this.getStoreMeta(storeName, 'lowWater', Infinity);
+      return currentMark;
+    }
+  }, {
+    key: "setLowWaterMark",
+    value: function setLowWaterMark(storeName, record) {
+      var origin = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : undefined;
+      var subType = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : undefined;
+      var metadata = this[Metadata][storeName];
+      var recordMark = record[metadata.highWater];
+      var currentMark = this.getStoreMeta(storeName, 'lowWater', null);
+      this.setStoreMeta(storeName, 'lowWater', recordMark);
+      this.dispatchEvent(new CustomEvent('lowWaterMoved', {
+        detail: {
+          database: this[Name],
+          record: record,
+          store: storeName,
+          type: 'lowWaterMoved',
+          subType: subType,
+          origin: origin,
+          oldValue: currentMark,
+          value: recordMark
+        }
+      }));
+    }
+  }], [{
+    key: "open",
+    value: function open(dbName) {
+      var _this8 = this;
+
+      var version = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+
+      if (this[Instances][dbName]) {
+        return Promise.resolve(this[Instances][dbName]);
+      }
+
+      return new Promise(function (accept, reject) {
+        var request = indexedDB.open(dbName, version);
+
+        request.onerror = function (error) {
+          Database.dispatchEvent(new CustomEvent('error', {
+            detail: {
+              database: _this8[Name],
+              error: error,
+              store: undefined,
+              type: 'read',
+              subType: 'select'
+            }
+          }));
+          reject(error);
+        };
+
+        request.onsuccess = function (event) {
+          var instance = new _this8(event.target.result);
+          _this8[Instances][dbName] = instance;
+          accept(instance);
+        };
+
+        request.onupgradeneeded = function (event) {
+          var connection = event.target.result;
+          connection.addEventListener('error', function (error) {
+            return console.error(error);
+          });
+          var instance = new _this8(connection);
+
+          for (var v = event.oldVersion + 1; v <= version; v += 1) {
+            instance['_version_' + v](connection);
+          }
+
+          _this8[Instances][dbName] = instance;
+        };
+      });
+    }
+  }, {
+    key: "getPrimaryKey",
+    value: function getPrimaryKey(record) {
+      return record[PrimaryKey] ? record[PrimaryKey].description : null;
+    }
+  }, {
+    key: "destroyDatabase",
+    value: function destroyDatabase() {
+      var _this9 = this;
+
+      return new Promise(function (accept, reject) {
+        var request = indexedDB["delete"](dbName);
+
+        request.onerror = function (error) {
+          Database.dispatchEvent(new CustomEvent('error', {
+            detail: {
+              database: dbName,
+              error: error,
+              type: 'destroy'
+            }
+          }));
+          reject(error);
+        };
+
+        request.onsuccess = function (event) {
+          delete _this9[Instances][dbName];
+          accept(dbName);
+        };
+      });
+    }
+  }]);
+
+  return Database;
+}(_Mixin.Mixin["with"](_EventTargetMixin.EventTargetMixin));
+
+exports.Database = Database;
+Object.defineProperty(Database, Instances, {
+  value: []
+});
+Object.defineProperty(Database, Target, {
+  value: document.createDocumentFragment()
+});
+Object.defineProperty(Database, 'BeforeDelete', {
+  value: BeforeDelete
+});
+Object.defineProperty(Database, 'AfterDelete', {
+  value: AfterDelete
+});
+Object.defineProperty(Database, 'BeforeWrite', {
+  value: BeforeWrite
+});
+Object.defineProperty(Database, 'AfterWrite', {
+  value: AfterWrite
+});
+Object.defineProperty(Database, 'BeforeInsert', {
+  value: BeforeInsert
+});
+Object.defineProperty(Database, 'AfterInsert', {
+  value: AfterInsert
+});
+Object.defineProperty(Database, 'BeforeUpdate', {
+  value: BeforeUpdate
+});
+Object.defineProperty(Database, 'AfterUpdate', {
+  value: AfterUpdate
+});
+Object.defineProperty(Database, 'BeforeRead', {
+  value: BeforeRead
+});
+Object.defineProperty(Database, 'AfterRead', {
+  value: AfterRead
+});
+
+var _loop = function _loop(method) {
+  Object.defineProperty(Database, method, {
+    value: function value() {
+      var _Database$Target;
+
+      return (_Database$Target = Database[Target])[method].apply(_Database$Target, arguments);
+    }
+  });
+};
+
+for (var method in ['addEventListener', 'removeEventListener', 'dispatchEvent']) {
+  _loop(method);
+}
+  })();
+});
+
+require.register("curvature/model/Model.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "curvature");
+  (function() {
+    "use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Model = void 0;
+
+var _Cache = require("../base/Cache");
+
+var _Bindable = require("../base/Bindable");
+
+function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var Saved = Symbol('Saved');
+var Changed = Symbol('Changed');
+
+var Model = /*#__PURE__*/function () {
+  _createClass(Model, null, [{
+    key: "keyProps",
+    get: function get() {
+      return ['id', 'class'];
+    }
+  }]);
+
+  function Model() {
+    _classCallCheck(this, Model);
+
+    Object.defineProperty(this, Changed, {
+      value: _Bindable.Bindable.make({})
+    });
+    Object.defineProperty(this, Saved, {
+      writable: true,
+      value: false
+    });
+    return _Bindable.Bindable.makeBindable(this);
+  }
+
+  _createClass(Model, [{
+    key: "consume",
+    value: function consume(skeleton) {
+      var _this = this;
+
+      var override = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      var keyProps = Model.keyProps;
+
+      var setProp = function setProp(property, value) {
+        if (value && _typeof(value) === 'object' && value.constructor.keyProps) {
+          var subKeyProps = value.constructor.keyProps;
+          var propCacheKey = subKeyProps.map(function (prop) {
+            return value[prop];
+          }).join('::');
+          var bucket = 'models-by-type-and-publicId';
+
+          var propCached = _Cache.Cache.load(propCacheKey, false, bucket);
+
+          if (propCached) {
+            propCached.consume(value);
+            value = propCached;
+          }
+        }
+
+        _this[property] = value;
+      };
+
+      for (var property in skeleton) {
+        if (!override && this[Changed][property]) {
+          continue;
+        }
+
+        if (keyProps.includes(property)) {
+          continue;
+        }
+
+        setProp(property, skeleton[property]);
+      }
+    }
+  }, {
+    key: "changed",
+    value: function changed() {
+      this[Saved] = false;
+    }
+  }, {
+    key: "stored",
+    value: function stored() {
+      for (var property in this[Changed]) {
+        this[Changed][property] = false;
+      }
+
+      this[Saved] = true;
+    }
+  }, {
+    key: "isSaved",
+    value: function isSaved() {
+      return this[Saved];
+    }
+  }], [{
+    key: "from",
+    value: function from(skeleton) {
+      var _this2 = this;
+
+      var keyProps = this.keyProps;
+      var cacheKey = keyProps.map(function (prop) {
+        return skeleton[prop];
+      }).join('::');
+      var bucket = 'models-by-type-and-publicId';
+
+      var cached = _Cache.Cache.load(cacheKey, false, bucket);
+
+      var instance = cached ? cached : new this();
+
+      var _iterator = _createForOfIteratorHelper(keyProps),
+          _step;
+
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var _ref, _instance$keyProp;
+
+          var keyProp = _step.value;
+          instance[keyProp] = (_ref = (_instance$keyProp = instance[keyProp]) !== null && _instance$keyProp !== void 0 ? _instance$keyProp : skeleton[keyProp]) !== null && _ref !== void 0 ? _ref : null;
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+
+      instance.consume(skeleton);
+
+      _Cache.Cache.store(cacheKey, instance, 0, bucket);
+
+      if (!cached) {
+        var changed = false;
+        instance.bindTo(function (v, k, t) {
+          if (_typeof(k) === 'symbol') {
+            return;
+          }
+
+          if (v === t[k]) {
+            return;
+          }
+
+          instance[Changed][k] = changed;
+          instance[Saved] = !!(changed ? false : _this2[Saved]);
+        });
+        changed = true;
+      }
+
+      return instance;
+    }
+  }]);
+
+  return Model;
+}();
+
+exports.Model = Model;
+Object.defineProperty(Model, 'Saved', {
+  value: Saved
+});
+Object.defineProperty(Model, 'Changed', {
+  value: Changed
+});
+  })();
+});
 require.register("initialize.js", function(exports, require, module) {
 "use strict";
 
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.MessageDatabase = void 0;
+
+var _Bindable = require("curvature/base/Bindable");
+
 var _View = require("curvature/base/View");
+
+var _Model2 = require("curvature/model/Model");
+
+var _Database2 = require("curvature/model/Database");
 
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
 
@@ -5948,7 +6856,194 @@ function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o =
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-var view = _View.View.from("\n\t<section class = \"app theme-[[profileTheme]]\">\n\n\t\t<section class = \"header\">\n\t\t\n\t\t\t<div class = \"branding\">\n\t\t\t\t<h1><a cv-link = \"/\">[[profileName]]</a></h1>\n\t\t\t\t<small>A <a cv-link = \"https://github.com/seanmorris/sycamore\">Sycamore</a> [[profileType]]</small>\n\t\t\t</div>\n\t\t\t\n\t\t\t<div class = \"menu\">\n\t\t\t\t<a cv-on = \"click:githubLoginClicked(event)\">\n\t\t\t\t\t<img class = \"icon\" src = \"/user.svg\">\n\t\t\t\t</a>\n\t\t\t</div>\n\t\t\n\t\t</section>\n\n\t\t<form class = \"post\" cv-on = \"submit:createPost(event)\">\n\t\t\t<input type = \"text\" placeholder = \"Write a post!\" />\n\t\t\t<input type = \"submit\" />\n\t\t</form>\n\n\t\t<ul class = \"messages\" cv-each = \"posts:post\">\n\n\t\t\t<li data-type = \"[[post.type]]\">\n\t\t\t\t\n\t\t\t\t<section class = \"author\">\n\t\t\t\t\t<div class = \"avatar\"></div>\n\t\t\t\t\t<span class = \"author\">[[post.author]]</span>\n\t\t\t\t</section>\n\t\t\t\t\n\t\t\t\t<section>\n\t\t\t\t\t<small title = \"[[post.timecode]]\">[[post.time]]</small>\n\t\t\t\t</section>\n\t\t\t\t\n\t\t\t\t<section>\n\t\t\t\t\t<span class = \"body\">[[post.slug]]</span>\n\t\t\t\t</section>\n\t\t\t\t\n\t\t\t\t<section>\n\t\t\t\t\t<a cv-link = \"/messages/[[post.name]]\">\n\t\t\t\t\t\t[[post.name]]\n\t\t\t\t\t\t<img class = \"icon\" src = \"/go.svg\" />\n\t\t\t\t\t</a>\n\t\t\t\t</section>\n\t\t\t\n\t\t\t</li>\n\t\t</ul>\n\n\t\t<section class = \"footer\">\n\t\t\t&copy; 2021 Sean Morris, All rights reserved.\n\t\t</section>\n\n\t</section>\n\t");
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+var MessageDatabase = /*#__PURE__*/function (_Database) {
+  _inherits(MessageDatabase, _Database);
+
+  var _super = _createSuper(MessageDatabase);
+
+  function MessageDatabase() {
+    _classCallCheck(this, MessageDatabase);
+
+    return _super.apply(this, arguments);
+  }
+
+  _createClass(MessageDatabase, [{
+    key: "_version_1",
+    value: function _version_1(database) {
+      var messageStore = this.createObjectStore('messages', {
+        keyPath: 'id',
+        autoIncrement: true
+      });
+      messageStore.createIndex('url', ['header.authority', 'header.name'], {
+        unique: true
+      });
+      messageStore.createIndex('issued', 'header.issued', {
+        unique: false
+      });
+    }
+  }]);
+
+  return MessageDatabase;
+}(_Database2.Database);
+
+exports.MessageDatabase = MessageDatabase;
+
+var MessageModel = /*#__PURE__*/function (_Model) {
+  _inherits(MessageModel, _Model);
+
+  var _super2 = _createSuper(MessageModel);
+
+  function MessageModel() {
+    var _this;
+
+    _classCallCheck(this, MessageModel);
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    _this = _super2.call.apply(_super2, [this].concat(args));
+
+    _defineProperty(_assertThisInitialized(_this), "signature", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "header", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "body", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "id", void 0);
+
+    return _this;
+  }
+
+  _createClass(MessageModel, [{
+    key: "authority",
+    get: function get() {
+      return this.header && this.header.authority;
+    }
+  }, {
+    key: "issued",
+    get: function get() {
+      return this.header && this.header.issued;
+    }
+  }, {
+    key: "name",
+    get: function get() {
+      return this.header && this.header.name;
+    }
+  }, {
+    key: "url",
+    get: function get() {
+      return this.authority + '/' + this.name;
+    }
+  }], [{
+    key: "keyProps",
+    get: function get() {
+      return ['url', 'class'];
+    }
+  }, {
+    key: "fromString",
+    value: function fromString(messageBody) {
+      var slug = messageBody.substring(0, 3);
+      var headerHex = messageBody.substr(3, 10);
+      var headerLen = parseInt(headerHex);
+      var header = messageBody.substr(14, headerLen);
+      var bodyStart = headerLen + 25;
+      var bodyHex = messageBody.substr(headerLen + 14, 10);
+      var bodyLen = parseInt(bodyHex);
+      var body = messageBody.substr(bodyStart, bodyLen);
+      var signatureStart = bodyStart + bodyLen + 1;
+      var signatureHex = messageBody.substr(signatureStart, 10);
+      var signatureLen = parseInt(signatureHex);
+      var signature = messageBody.substr(bodyStart + bodyLen + 12); // if(this.header && this.header.issued && this.header.issued > header.issued)
+      // {
+      // 	return false;
+      // }
+
+      var headerObject = JSON.parse(header);
+      var url = headerObject.authority + '/' + headerObject.name;
+      var skeleton = {
+        "class": 'message',
+        header: headerObject,
+        body: body,
+        signature: signature
+      };
+      var message = new MessageModel();
+      message.consume(skeleton); // console.log(message);
+
+      return message;
+    }
+  }]);
+
+  return MessageModel;
+}(_Model2.Model);
+
+;
+var posts = new Set();
+
+var loadPosts = function loadPosts(messageBytes) {
+  var message = MessageModel.fromString(messageBytes);
+
+  if (!message.url || posts.has(message.url)) {
+    return;
+  }
+
+  var viewArgs = {
+    name: message.name,
+    type: message.header.type,
+    time: new Date(message.header.issued * 1000),
+    timecode: message.header.issued,
+    author: message.header.author,
+    slug: message.header.type.substr(0, 10) === 'text/plain' ? message.body.substr(0, 140) : null
+  };
+  view.args.posts.push(viewArgs);
+  posts.add(message.url);
+  var query = {
+    store: 'messages',
+    index: 'url',
+    range: message.url,
+    type: MessageModel
+  };
+  MessageDatabase.open('messages', 1).then(function (database) {
+    database.select(query).one().then(function (result) {
+      var record = result.record;
+
+      if (!record) {
+        var _message = MessageModel.fromString(messageBytes);
+
+        database.insert('messages', _message);
+      } else {
+        record.consume(message);
+        database.update('messages', record);
+      }
+    })["catch"](function (error) {
+      return console.log(error);
+    });
+  });
+};
+
+var view = _View.View.from("\n\t<section class = \"app theme-[[profileTheme]]\">\n\n\t\t<section class = \"header\">\n\t\t\n\t\t\t<div class = \"branding\">\n\t\t\t\t<h1><a cv-link = \"/\">[[profileName]]</a></h1>\n\t\t\t\t<small>A <a cv-link = \"https://github.com/seanmorris/sycamore\">Sycamore</a> [[profileType]]</small>\n\t\t\t</div>\n\t\t\t\n\t\t\t<div class = \"menu\">\n\t\t\t\t<a cv-on = \"click:githubLoginClicked(event)\">\n\t\t\t\t\t<img class = \"icon\" src = \"/user.svg\">\n\t\t\t\t</a>\n\t\t\t</div>\n\t\t\n\t\t</section>\n\n\t\t<section class = \"body\">\n\t\t\t<form class = \"post\" cv-on = \"submit:createPost(event)\">\n\t\t\t\t<input type = \"text\" placeholder = \"Write a post!\" cv-bind = \"inputPost\" />\n\t\t\t\t<input type = \"submit\" />\n\t\t\t</form>\n\n\t\t\t<ul class = \"messages\" cv-each = \"posts:post\">\n\n\t\t\t\t<li data-type = \"[[post.type]]\">\n\t\t\t\t\t\n\t\t\t\t\t<section class = \"author\">\n\t\t\t\t\t\t<div class = \"avatar\"></div>\n\t\t\t\t\t\t<span class = \"author\">[[post.author]]</span>\n\t\t\t\t\t</section>\n\t\t\t\t\t\n\t\t\t\t\t<section>\n\t\t\t\t\t\t<small title = \"[[post.timecode]]\">[[post.time]]</small>\n\t\t\t\t\t</section>\n\t\t\t\t\t\n\t\t\t\t\t<section>\n\t\t\t\t\t\t<span class = \"body\">[[post.slug]]</span>\n\t\t\t\t\t</section>\n\t\t\t\t\t\n\t\t\t\t\t<section>\n\t\t\t\t\t\t<a cv-link = \"/messages/[[post.name]]\">\n\t\t\t\t\t\t\t[[post.name]]\n\t\t\t\t\t\t\t<img class = \"icon\" src = \"/go.svg\" />\n\t\t\t\t\t\t</a>\n\t\t\t\t\t</section>\n\t\t\t\t\n\t\t\t\t</li>\n\t\t\t</ul>\n\t\t</section>\n\n\t\t<section class = \"footer\">\n\t\t\t&copy; 2021 Sean Morris, All rights reserved.\n\t\t</section>\n\n\t</section>\n\t");
 
 view.githubLoginClicked = function (event) {
   var redirectUri = 'https://sycamore.seanmorr.is/github-auth/accept';
@@ -5983,12 +7078,16 @@ view.githubLoginClicked = function (event) {
 
 view.createPost = function (event) {
   event.preventDefault();
-  var raw = 'API generated post!';
+
+  if (!view.args.inputPost) {
+    return;
+  }
+
+  var raw = view.args.inputPost;
   var branch = 'master';
   var message = 'Sycamore self-edit.';
   var content = btoa(unescape(encodeURIComponent(raw)));
-  var sha = ''; // const url = new URL(this.window.args.url).pathname;
-
+  var sha = '';
   var postChange = {
     message: message,
     content: content,
@@ -6011,7 +7110,7 @@ view.createPost = function (event) {
   }
 
   var filepath = 'messages';
-  var filename = 'new-post.md';
+  var filename = "post-".concat(Date.now(), ".md");
   return fetch('https://api.github.com/repos/seanmorris/sycamore' + '/contents/' + filepath + (filepath ? '/' : '') + filename, {
     method: method,
     headers: headers,
@@ -6020,7 +7119,7 @@ view.createPost = function (event) {
   }).then(function (response) {
     return response.json();
   }).then(function (response) {
-    return console.log(response);
+    view.args.inputPost = '';
   });
 };
 
@@ -6071,32 +7170,7 @@ fetch('/feeds.list').then(function (response) {
             fetch('/messages/' + messageUrl + '.smsg').then(function (response) {
               return response.text();
             }).then(function (messageBody) {
-              var slug = messageBody.substring(0, 3);
-              var headerHex = messageBody.substr(3, 10);
-              var headerLen = parseInt(headerHex);
-              var header = messageBody.substr(14, headerLen);
-              var bodyStart = headerLen + 25;
-              var bodyHex = messageBody.substr(headerLen + 14, 10);
-              var bodyLen = parseInt(bodyHex);
-              var body = messageBody.substr(bodyStart, bodyLen);
-              var signatureStart = bodyStart + bodyLen + 1;
-              var signatureHex = messageBody.substr(signatureStart, 10);
-              var signatureLen = parseInt(signatureHex);
-              var signature = messageBody.substr(bodyStart + bodyLen + 12);
-              var message = {
-                header: JSON.parse(header),
-                body: body,
-                signature: signature
-              };
-              console.log(message.header.issued * 1000);
-              view.args.posts.push({
-                name: message.header.name,
-                type: message.header.type,
-                time: new Date(message.header.issued * 1000),
-                timecode: message.header.issued,
-                author: message.header.author,
-                slug: message.header.type.substr(0, 10) === 'text/plain' ? message.body.substr(0, 140) : null
-              });
+              loadPosts(messageBody);
             });
           }
         } catch (err) {

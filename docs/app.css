@@ -90,6 +90,14 @@ ul.messages li pre {
 	margin-top: 0;
 }
 
+html {
+	overflow-y: scroll;
+}
+
+html, body {
+	min-height: 100vh;
+}
+
 html, body, h1 {
 	margin: 0;
 	padding: 0;
@@ -106,7 +114,9 @@ h1 {
 section.app {
 	background-attachment: fixed;
 	background-size: cover;	
-
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
 }
 
 section.app.theme-red-dots {
@@ -128,7 +138,7 @@ section.header {
 	flex-direction: row;
 	align-items: center;
 	width: 100%;
-	position: sticky;
+	/*position: sticky;*/
 	top: 0;
 	z-index: 10;
 }
@@ -136,10 +146,16 @@ section.header {
 section.footer {
 	padding: 1em;
 	height: 8em;
-	margin-top: 8em;
+	/*margin-top: 8em;*/
 	text-align: right;
 	font-size: 0.75em;
 	color: rgba(255, 255, 255, 0.75);
+	margin-bottom: 0;
+}
+
+section.body {
+	flex-grow: 1;
+	min-height: 100%;
 }
 
 section.header a {
