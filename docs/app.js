@@ -154,6 +154,8 @@ require.register("curvature/base/Bag.js", function(exports, require, module) {
   (function() {
     "use strict";
 
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
@@ -164,8 +166,6 @@ var _Bindable = require("./Bindable");
 var _Mixin = require("./Mixin");
 
 var _EventTargetMixin = require("../mixin/EventTargetMixin");
-
-function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -183,7 +183,7 @@ function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) ===
 
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
 
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
 
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
@@ -315,16 +315,16 @@ var Bag = /*#__PURE__*/function (_Mixin$with) {
       return item;
     }
   }, {
+    key: "size",
+    get: function get() {
+      return this.content.size;
+    }
+  }, {
     key: "items",
     value: function items() {
       return Array.from(this.content.entries()).map(function (entry) {
         return entry[0];
       });
-    }
-  }, {
-    key: "size",
-    get: function get() {
-      return this.content.size;
     }
   }]);
 
@@ -359,7 +359,7 @@ exports.Bindable = void 0;
 
 function _construct(Parent, args, Class) { if (_isNativeReflectConstruct()) { _construct = Reflect.construct; } else { _construct = function _construct(Parent, args, Class) { var a = [null]; a.push.apply(a, args); var Constructor = Function.bind.apply(Parent, a); var instance = new Constructor(); if (Class) _setPrototypeOf(instance, Class.prototype); return instance; }; } return _construct.apply(null, arguments); }
 
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
@@ -406,7 +406,10 @@ var OnGet = Symbol('onGet');
 var OnAllGet = Symbol('onAllGet');
 var BindChain = Symbol('bindChain');
 var Descriptors = Symbol('Descriptors');
+var NoGetters = Symbol('NoGetters');
 var TypedArray = Object.getPrototypeOf(Int8Array);
+var SetIterator = Set.prototype[Symbol.iterator];
+var MapIterator = Map.prototype[Symbol.iterator];
 var win = globalThis;
 var excludedClasses = [win.Node, win.File, win.Map, win.Set, win.WeakMap, win.WeakSet, win.ArrayBuffer, win.ResizeObserver, win.MutationObserver, win.PerformanceObserver, win.IntersectionObserver].filter(function (x) {
   return typeof x === 'function';
@@ -593,7 +596,7 @@ var Bindable = /*#__PURE__*/function () {
         configurable: false,
         enumerable: false,
         writable: false,
-        value: {}
+        value: new Map()
       });
       Object.defineProperty(object, Unwrapped, {
         configurable: false,
@@ -850,18 +853,20 @@ var Bindable = /*#__PURE__*/function () {
         value: isBound
       });
 
-      var _loop = function _loop(i) {
-        if (object[i] && object[i] instanceof Object && !object[i] instanceof Promise) {
-          if (!excludedClasses.filter(function (excludeClass) {
-            return object[i] instanceof excludeClass;
-          }).length && Object.isExtensible(object[i]) && !Object.isSealed(object[i])) {
-            object[i] = Bindable.make(object[i]);
+      if (!object[NoGetters]) {
+        var _loop = function _loop(i) {
+          if (object[i] && object[i] instanceof Object && !object[i] instanceof Promise) {
+            if (!excludedClasses.filter(function (excludeClass) {
+              return object[i] instanceof excludeClass;
+            }).length && Object.isExtensible(object[i]) && !Object.isSealed(object[i])) {
+              object[i] = Bindable.make(object[i]);
+            }
           }
-        }
-      };
+        };
 
-      for (var i in object) {
-        _loop(i);
+        for (var i in object) {
+          _loop(i);
+        }
       }
 
       var set = function set(target, key, value) {
@@ -885,7 +890,9 @@ var Bindable = /*#__PURE__*/function () {
           if (!excludedClasses.filter(function (x) {
             return object instanceof x;
           }).length && Object.isExtensible(object) && !Object.isSealed(object)) {
-            value = Bindable.makeBindable(value);
+            if (!object[NoGetters]) {
+              value = Bindable.makeBindable(value);
+            }
           }
         }
 
@@ -957,6 +964,16 @@ var Bindable = /*#__PURE__*/function () {
           return true;
         }
 
+        if (descriptors.has(key)) {
+          var descriptor = descriptors.get(key);
+
+          if (descriptor && !descriptor.configurable) {
+            return false;
+          }
+
+          descriptors["delete"](key);
+        }
+
         for (var _i4 in object[BindingAll]) {
           object[BindingAll][_i4](undefined, key, target, true, target[key]);
         }
@@ -996,12 +1013,12 @@ var Bindable = /*#__PURE__*/function () {
       var stack = object[Stack];
 
       var get = function get(target, key) {
-        if (key === Ref || key === Original || key === 'apply' || key === 'isBound' || key === 'bindTo' || key === '__proto__' || key === 'constructor') {
-          return object[key];
+        if (wrapped.has(key)) {
+          return wrapped.get(key);
         }
 
-        if (key in wrapped) {
-          return wrapped[key];
+        if (key === Ref || key === Original || key === 'apply' || key === 'isBound' || key === 'bindTo' || key === '__proto__' || key === 'constructor') {
+          return object[key];
         }
 
         var descriptor;
@@ -1026,8 +1043,8 @@ var Bindable = /*#__PURE__*/function () {
         }
 
         if (descriptor && !descriptor.configurable && !descriptor.writable) {
-          wrapped[key] = object[key];
-          return wrapped[key];
+          wrapped.set(key, object[key]);
+          return object[key];
         }
 
         if (typeof object[key] === 'function') {
@@ -1041,11 +1058,11 @@ var Bindable = /*#__PURE__*/function () {
             writable: false,
             value: object[key]
           });
+          var prototype = Object.getPrototypeOf(object);
+          var isMethod = prototype[key] === object[key];
+          var objRef = typeof Promise === 'function' && object instanceof Promise || typeof Map === 'function' && object instanceof Map || typeof Set === 'function' && object instanceof Set || typeof MapIterator === 'function' && object.prototype === MapIterator || typeof SetIterator === 'function' && object.prototype === SetIterator || typeof SetIterator === 'function' && object.prototype === SetIterator || typeof WeakMap === 'function' && object instanceof WeakMap || typeof WeakSet === 'function' && object instanceof WeakSet || typeof Date === 'function' && object instanceof Date || typeof TypedArray === 'function' && object instanceof TypedArray || typeof ArrayBuffer === 'function' && object instanceof ArrayBuffer || typeof EventTarget === 'function' && object instanceof EventTarget || typeof ResizeObserver === 'function' && object instanceof ResizeObserver || typeof MutationObserver === 'function' && object instanceof MutationObserver || typeof PerformanceObserver === 'function' && object instanceof PerformanceObserver || typeof IntersectionObserver === 'function' && object instanceof IntersectionObserver || typeof object[Symbol.iterator] === 'function' && key === 'next' ? object : object[Ref];
 
           var wrappedMethod = function wrappedMethod() {
-            var SetIterator = Set.prototype[Symbol.iterator];
-            var MapIterator = Map.prototype[Symbol.iterator];
-            var objRef = typeof Promise === 'function' && object instanceof Promise || typeof Map === 'function' && object instanceof Map || typeof Set === 'function' && object instanceof Set || typeof MapIterator === 'function' && object.prototype === MapIterator || typeof SetIterator === 'function' && object.prototype === SetIterator || typeof SetIterator === 'function' && object.prototype === SetIterator || typeof WeakMap === 'function' && object instanceof WeakMap || typeof WeakSet === 'function' && object instanceof WeakSet || typeof Date === 'function' && object instanceof Date || typeof TypedArray === 'function' && object instanceof TypedArray || typeof ArrayBuffer === 'function' && object instanceof ArrayBuffer || typeof EventTarget === 'function' && object instanceof EventTarget || typeof ResizeObserver === 'function' && object instanceof ResizeObserver || typeof MutationObserver === 'function' && object instanceof MutationObserver || typeof PerformanceObserver === 'function' && object instanceof PerformanceObserver || typeof IntersectionObserver === 'function' && object instanceof IntersectionObserver || typeof object[Symbol.iterator] === 'function' && key === 'next' ? object : object[Ref];
             object[Executing] = key;
             stack.unshift(key);
 
@@ -1053,8 +1070,18 @@ var Bindable = /*#__PURE__*/function () {
               providedArgs[_key3] = arguments[_key3];
             }
 
-            for (var _i8 in object.___before___) {
-              object.___before___[_i8](object, key, stack, object, providedArgs);
+            var _iterator2 = _createForOfIteratorHelper(object.___before___),
+                _step2;
+
+            try {
+              for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+                var beforeCallback = _step2.value;
+                beforeCallback(object, key, stack, object, providedArgs);
+              }
+            } catch (err) {
+              _iterator2.e(err);
+            } finally {
+              _iterator2.f();
             }
 
             var ret;
@@ -1062,8 +1089,6 @@ var Bindable = /*#__PURE__*/function () {
             if (new.target) {
               ret = _construct(object[Unwrapped][key], providedArgs);
             } else {
-              var prototype = Object.getPrototypeOf(object);
-              var isMethod = prototype[key] === object[key];
               var func = object[Unwrapped][key];
 
               if (isMethod) {
@@ -1073,8 +1098,18 @@ var Bindable = /*#__PURE__*/function () {
               }
             }
 
-            for (var _i9 in object.___after___) {
-              object.___after___[_i9](object, key, stack, object, providedArgs);
+            var _iterator3 = _createForOfIteratorHelper(object.___before___),
+                _step3;
+
+            try {
+              for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+                var afterCallback = _step3.value;
+                afterCallback(object, key, stack, object, providedArgs);
+              }
+            } catch (err) {
+              _iterator3.e(err);
+            } finally {
+              _iterator3.f();
             }
 
             object[Executing] = null;
@@ -1090,8 +1125,9 @@ var Bindable = /*#__PURE__*/function () {
             return object[selfName][key];
           };
 
-          wrapped[key] = Bindable.make(wrappedMethod);
-          return wrapped[key];
+          var result = Bindable.make(wrappedMethod);
+          wrapped.set(key, result);
+          return result;
         }
 
         return object[key];
@@ -1105,17 +1141,23 @@ var Bindable = /*#__PURE__*/function () {
         return Reflect.getPrototypeOf(target);
       };
 
+      var handler = {
+        get: get,
+        set: set,
+        construct: construct,
+        getPrototypeOf: getPrototypeOf,
+        deleteProperty: deleteProperty
+      };
+
+      if (object[NoGetters]) {
+        delete handler.get;
+      }
+
       Object.defineProperty(object, Ref, {
         configurable: false,
         enumerable: false,
         writable: false,
-        value: new Proxy(object, {
-          get: get,
-          set: set,
-          construct: construct,
-          getPrototypeOf: getPrototypeOf,
-          deleteProperty: deleteProperty
-        })
+        value: new Proxy(object, handler)
       });
       return object[Ref];
     }
@@ -1151,7 +1193,7 @@ var Bindable = /*#__PURE__*/function () {
 
       while (pathParts.length) {
         if (owner && pathParts.length === 1) {
-          var obj = this.makeBindable(object);
+          var obj = object.NoGetters ? this.make(object) : object;
           return [obj, pathParts.shift(), top];
         }
 
@@ -1161,10 +1203,10 @@ var Bindable = /*#__PURE__*/function () {
           object[node] = {};
         }
 
-        object = this.makeBindable(object[node]);
+        object = object.NoGetters ? this.make(object[node]) : object[node];
       }
 
-      return [this.makeBindable(object), node, top];
+      return [this.make(object), node, top];
     }
   }, {
     key: "wrapDelayCallback",
@@ -1268,6 +1310,12 @@ Object.defineProperty(Bindable, 'OnGet', {
   enumerable: false,
   writable: false,
   value: OnGet
+});
+Object.defineProperty(Bindable, 'NoGetters', {
+  configurable: false,
+  enumerable: false,
+  writable: false,
+  value: NoGetters
 });
 Object.defineProperty(Bindable, 'GetProto', {
   configurable: false,
@@ -1571,7 +1619,7 @@ function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) ===
 
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
 
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
 
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
@@ -2745,6 +2793,124 @@ exports.RuleSet = RuleSet;
   })();
 });
 
+require.register("curvature/base/SetMap.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "curvature");
+  (function() {
+    "use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.SetMap = void 0;
+
+function _construct(Parent, args, Class) { if (_isNativeReflectConstruct()) { _construct = Reflect.construct; } else { _construct = function _construct(Parent, args, Class) { var a = [null]; a.push.apply(a, args); var Constructor = Function.bind.apply(Parent, a); var instance = new Constructor(); if (Class) _setPrototypeOf(instance, Class.prototype); return instance; }; } return _construct.apply(null, arguments); }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
+
+function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var SetMap = /*#__PURE__*/function () {
+  function SetMap() {
+    _classCallCheck(this, SetMap);
+
+    _defineProperty(this, "_map", new Map());
+  }
+
+  _createClass(SetMap, [{
+    key: "has",
+    value: function has(key) {
+      return this._map.has(key);
+    }
+  }, {
+    key: "get",
+    value: function get(key) {
+      return this._map.get(key);
+    }
+  }, {
+    key: "getOne",
+    value: function getOne(key) {
+      var set = this.get(key);
+
+      var _iterator = _createForOfIteratorHelper(set),
+          _step;
+
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var entry = _step.value;
+          return entry;
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+    }
+  }, {
+    key: "add",
+    value: function add(key, value) {
+      var set = this._map.get(key);
+
+      if (!set) {
+        this._map.set(key, set = new Set());
+      }
+
+      return set.add(value);
+    }
+  }, {
+    key: "remove",
+    value: function remove(key, value) {
+      var set = this._map.get(key);
+
+      if (!set) {
+        return;
+      }
+
+      var res = set["delete"](value);
+
+      if (!set.size) {
+        this._map["delete"](key);
+      }
+
+      return res;
+    }
+  }, {
+    key: "values",
+    value: function values() {
+      return _construct(Set, _toConsumableArray(_toConsumableArray(this._map.values()).map(function (set) {
+        return _toConsumableArray(set.values());
+      })));
+    }
+  }]);
+
+  return SetMap;
+}();
+
+exports.SetMap = SetMap;
+  })();
+});
+
 require.register("curvature/base/Tag.js", function(exports, require, module) {
   require = __makeRelativeRequire(require, {}, "curvature");
   (function() {
@@ -2806,19 +2972,14 @@ var Tag = /*#__PURE__*/function () {
       return _Bindable.Bindable.make(function (styles) {
         if (!_this.node) {
           return;
-        } // let styleEvent = new CustomEvent('cvStyle', {detail:{styles}});
-        // if(!_this.node.dispatchEvent(styleEvent))
-        // {
-        // 	return;
-        // }
-
+        }
 
         for (var property in styles) {
           if (property[0] === '-') {
             _this.node.style.setProperty(property, styles[property]);
+          } else {
+            _this.node.style[property] = styles[property];
           }
-
-          _this.node.style[property] = styles[property];
         }
       });
     }(this);
@@ -2931,6 +3092,8 @@ require.register("curvature/base/View.js", function(exports, require, module) {
   (function() {
     "use strict";
 
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
@@ -2955,8 +3118,6 @@ var _Mixin = require("./Mixin");
 var _PromiseMixin = require("../mixin/PromiseMixin");
 
 var _EventTargetMixin = require("../mixin/EventTargetMixin");
-
-function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
 
@@ -2996,7 +3157,7 @@ function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) ===
 
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
 
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
 
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
@@ -3009,22 +3170,6 @@ var View = /*#__PURE__*/function (_Mixin$with) {
   _inherits(View, _Mixin$with);
 
   var _super = _createSuper(View);
-
-  _createClass(View, [{
-    key: "_id",
-    get: function get() {
-      return this[uuid];
-    }
-  }], [{
-    key: "from",
-    value: function from(template) {
-      var args = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      var parent = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-      var view = new this(args, parent);
-      view.template = template;
-      return view;
-    }
-  }]);
 
   function View() {
     var _this;
@@ -3039,7 +3184,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
       value: _Bindable.Bindable.make(args)
     });
     Object.defineProperty(_assertThisInitialized(_this), uuid, {
-      value: _this.uuid()
+      value: _this.constructor.uuid()
     });
     Object.defineProperty(_assertThisInitialized(_this), 'nodesAttached', {
       value: new _Bag.Bag(function (i, s, a) {})
@@ -3114,11 +3259,17 @@ var View = /*#__PURE__*/function (_Mixin$with) {
     _this.viewList = null;
     _this.mainView = null;
     _this.preserve = false;
-    _this.removed = false;
-    return _possibleConstructorReturn(_this, _Bindable.Bindable.make(_assertThisInitialized(_this)));
+    _this.removed = false; // return Bindable.make(this);
+
+    return _this;
   }
 
   _createClass(View, [{
+    key: "_id",
+    get: function get() {
+      return this[uuid];
+    }
+  }, {
     key: "onFrame",
     value: function onFrame(callback) {
       var _this2 = this;
@@ -3431,8 +3582,8 @@ var View = /*#__PURE__*/function (_Mixin$with) {
         var toRoot = false;
 
         if (rootNode.isConnected) {
-          toRoot = true;
           moveType = 'external';
+          toRoot = true;
         }
 
         if (insertPoint) {
@@ -3450,13 +3601,19 @@ var View = /*#__PURE__*/function (_Mixin$with) {
           this.attached(rootNode, parentNode);
           this.dispatchAttached(rootNode, parentNode);
         } else {
-          parentNode.addEventListener('cvDomAttached', function () {
+          var firstDomAttach = function firstDomAttach(event) {
+            if (!event.target.isConnected) {
+              return;
+            }
+
             _this4.attached(rootNode, parentNode);
 
             _this4.dispatchAttached(rootNode, parentNode);
-          }, {
-            once: true
-          });
+
+            parentNode.removeEventListener('cvDomAttached', firstDomAttach);
+          };
+
+          parentNode.addEventListener('cvDomAttached', firstDomAttach);
         }
       }
 
@@ -3474,14 +3631,27 @@ var View = /*#__PURE__*/function (_Mixin$with) {
   }, {
     key: "dispatchAttached",
     value: function dispatchAttached(rootNode, parentNode) {
+      var view = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : undefined;
       this.dispatchEvent(new CustomEvent('attached', {
-        target: this
+        detail: {
+          view: view || this,
+          node: parentNode,
+          root: rootNode,
+          mainView: this
+        }
       }));
       var attach = this.nodesAttached.items();
 
       for (var i in attach) {
         attach[i](rootNode, parentNode);
       }
+
+      this.dispatchDomAttached(view);
+    }
+  }, {
+    key: "dispatchDomAttached",
+    value: function dispatchDomAttached(view) {
+      var _this5 = this;
 
       this.nodes.filter(function (n) {
         return n.nodeType !== Node.COMMENT_NODE;
@@ -3495,13 +3665,21 @@ var View = /*#__PURE__*/function (_Mixin$with) {
             return;
           }
 
-          tag.dispatchEvent(new Event('cvDomAttached', {
-            target: tag
+          tag.dispatchEvent(new CustomEvent('cvDomAttached', {
+            target: tag,
+            detail: {
+              view: view || _this5,
+              mainView: _this5
+            }
           }));
         });
 
-        child.dispatchEvent(new Event('cvDomAttached', {
-          target: child
+        child.dispatchEvent(new CustomEvent('cvDomAttached', {
+          target: child,
+          detail: {
+            view: view || _this5,
+            mainView: _this5
+          }
         }));
       });
     }
@@ -3556,7 +3734,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
   }, {
     key: "mapTags",
     value: function mapTags(subDoc) {
-      var _this5 = this;
+      var _this6 = this;
 
       _Dom.Dom.mapTags(subDoc, false, function (tag, walker) {
         if (tag[dontParse]) {
@@ -3564,22 +3742,22 @@ var View = /*#__PURE__*/function (_Mixin$with) {
         }
 
         if (tag.matches) {
-          tag = _this5.mapInterpolatableTag(tag);
-          tag = tag.matches('[cv-template]') && _this5.mapTemplateTag(tag) || tag;
-          tag = tag.matches('[cv-slot]') && _this5.mapSlotTag(tag) || tag;
-          tag = tag.matches('[cv-prerender]') && _this5.mapPrendererTag(tag) || tag;
-          tag = tag.matches('[cv-link]') && _this5.mapLinkTag(tag) || tag;
-          tag = tag.matches('[cv-attr]') && _this5.mapAttrTag(tag) || tag;
-          tag = tag.matches('[cv-expand]') && _this5.mapExpandableTag(tag) || tag;
-          tag = tag.matches('[cv-ref]') && _this5.mapRefTag(tag) || tag;
-          tag = tag.matches('[cv-on]') && _this5.mapOnTag(tag) || tag;
-          tag = tag.matches('[cv-each]') && _this5.mapEachTag(tag) || tag;
-          tag = tag.matches('[cv-bind]') && _this5.mapBindTag(tag) || tag;
-          tag = tag.matches('[cv-with]') && _this5.mapWithTag(tag) || tag;
-          tag = tag.matches('[cv-if]') && _this5.mapIfTag(tag) || tag;
-          tag = tag.matches('[cv-view]') && _this5.mapViewTag(tag) || tag;
+          tag = _this6.mapInterpolatableTag(tag);
+          tag = tag.matches('[cv-template]') && _this6.mapTemplateTag(tag) || tag;
+          tag = tag.matches('[cv-slot]') && _this6.mapSlotTag(tag) || tag;
+          tag = tag.matches('[cv-prerender]') && _this6.mapPrendererTag(tag) || tag;
+          tag = tag.matches('[cv-link]') && _this6.mapLinkTag(tag) || tag;
+          tag = tag.matches('[cv-attr]') && _this6.mapAttrTag(tag) || tag;
+          tag = tag.matches('[cv-expand]') && _this6.mapExpandableTag(tag) || tag;
+          tag = tag.matches('[cv-ref]') && _this6.mapRefTag(tag) || tag;
+          tag = tag.matches('[cv-on]') && _this6.mapOnTag(tag) || tag;
+          tag = tag.matches('[cv-each]') && _this6.mapEachTag(tag) || tag;
+          tag = tag.matches('[cv-bind]') && _this6.mapBindTag(tag) || tag;
+          tag = tag.matches('[cv-with]') && _this6.mapWithTag(tag) || tag;
+          tag = tag.matches('[cv-if]') && _this6.mapIfTag(tag) || tag;
+          tag = tag.matches('[cv-view]') && _this6.mapViewTag(tag) || tag;
         } else {
-          tag = _this5.mapInterpolatableTag(tag);
+          tag = _this6.mapInterpolatableTag(tag);
         }
 
         if (tag !== walker.currentNode) {
@@ -3779,7 +3957,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
   }, {
     key: "mapInterpolatableTag",
     value: function mapInterpolatableTag(tag) {
-      var _this6 = this;
+      var _this7 = this;
 
       var regex = this.interpolateRegex;
 
@@ -3801,7 +3979,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
           var transformer = false;
 
           if (propertySplit.length > 1) {
-            transformer = _this6.stringTransformer(propertySplit.slice(1));
+            transformer = _this7.stringTransformer(propertySplit.slice(1));
             bindProperty = propertySplit[0];
           }
 
@@ -3836,11 +4014,11 @@ var View = /*#__PURE__*/function (_Mixin$with) {
           }
 
           dynamicNode[dontParse] = true;
-          var proxy = _this6.args;
+          var proxy = _this7.args;
           var property = bindProperty;
 
           if (bindProperty.match(/\./)) {
-            var _Bindable$resolve5 = _Bindable.Bindable.resolve(_this6.args, bindProperty, true);
+            var _Bindable$resolve5 = _Bindable.Bindable.resolve(_this7.args, bindProperty, true);
 
             var _Bindable$resolve6 = _slicedToArray(_Bindable$resolve5, 2);
 
@@ -3860,7 +4038,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
 
             if (unsafeView && !(v instanceof View)) {
               var unsafeTemplate = v;
-              v = new View(_this6.args, _this6);
+              v = new View(_this7.args, _this7);
               v.template = unsafeTemplate;
             }
 
@@ -3869,14 +4047,15 @@ var View = /*#__PURE__*/function (_Mixin$with) {
             }
 
             if (v instanceof View) {
-              var onAttach = function onAttach(parentNode) {
-                if (v.dispatchAttach()) {
-                  v.attached(parentNode);
-                  v.dispatchAttached();
-                }
+              var onAttach = function onAttach(rootNode, parentNode) {
+                v.dispatchDomAttached(_this7); // if(v.nodes.length && v.dispatchAttach())
+                // {
+                // 	v.attached(rootNode, parentNode, this);
+                // 	v.dispatchAttached(rootNode, parentNode, this);
+                // }
               };
 
-              _this6.nodesAttached.add(onAttach);
+              _this7.nodesAttached.add(onAttach);
 
               v.render(tag.parentNode, dynamicNode);
 
@@ -3886,23 +4065,23 @@ var View = /*#__PURE__*/function (_Mixin$with) {
                 }
               };
 
-              _this6.onRemove(cleanup);
+              _this7.onRemove(cleanup);
 
               v.onRemove(function () {
-                _this6.nodesAttached.remove(onAttach);
+                _this7.nodesAttached.remove(onAttach);
 
-                _this6._onRemove.remove(cleanup);
+                _this7._onRemove.remove(cleanup);
               });
             } else if (v instanceof Node) {
               tag.parentNode.insertBefore(v, dynamicNode);
 
-              _this6.onRemove(function () {
+              _this7.onRemove(function () {
                 return v.remove();
               });
             } else if (v instanceof _Tag.Tag) {
               tag.parentNode.insertBefore(v.node, dynamicNode);
 
-              _this6.onRemove(function () {
+              _this7.onRemove(function () {
                 return v.remove();
               });
             } else {
@@ -3920,7 +4099,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
             dynamicNode[dontParse] = true;
           });
 
-          _this6.onRemove(debind);
+          _this7.onRemove(debind);
         };
 
         while (match = regex.exec(original)) {
@@ -3936,7 +4115,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
         tag.nodeValue = '';
       } else if (tag.nodeType === Node.ELEMENT_NODE) {
         var _loop4 = function _loop4(i) {
-          if (!_this6.interpolatable(tag.attributes[i].value)) {
+          if (!_this7.interpolatable(tag.attributes[i].value)) {
             return "continue";
           }
 
@@ -3962,19 +4141,19 @@ var View = /*#__PURE__*/function (_Mixin$with) {
           segments.push(original.substring(header));
 
           var _loop5 = function _loop5(j) {
-            var proxy = _this6.args;
+            var proxy = _this7.args;
             var property = j;
             var propertySplit = j.split('|');
             var transformer = false;
             var longProperty = j;
 
             if (propertySplit.length > 1) {
-              transformer = _this6.stringTransformer(propertySplit.slice(1));
+              transformer = _this7.stringTransformer(propertySplit.slice(1));
               property = propertySplit[0];
             }
 
             if (property.match(/\./)) {
-              var _Bindable$resolve7 = _Bindable.Bindable.resolve(_this6.args, property, true);
+              var _Bindable$resolve7 = _Bindable.Bindable.resolve(_this7.args, property, true);
 
               var _Bindable$resolve8 = _slicedToArray(_Bindable$resolve7, 2);
 
@@ -3997,7 +4176,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
             // 	tag.setAttribute(attribute.name, segments.join(''));
             // };
 
-            _this6.onRemove(proxy.bindTo(property, function (v, k, t, d) {
+            _this7.onRemove(proxy.bindTo(property, function (v, k, t, d) {
               if (transformer) {
                 v = transformer(v);
               }
@@ -4012,18 +4191,18 @@ var View = /*#__PURE__*/function (_Mixin$with) {
                 }
               }
 
-              if (!_this6.paused) {
+              if (!_this7.paused) {
                 // changeAttribute(v,k,t,d);
                 tag.setAttribute(attribute.name, segments.join(''));
               } else {
                 // this.unpauseCallbacks.set(attribute, () => changeAttribute(v,k,t,d));
-                _this6.unpauseCallbacks.set(attribute, function () {
+                _this7.unpauseCallbacks.set(attribute, function () {
                   return tag.setAttribute(attribute.name, segments.join(''));
                 });
               }
             }));
 
-            _this6.onRemove(function () {
+            _this7.onRemove(function () {
               if (!proxy.isBound()) {
                 _Bindable.Bindable.clearBindings(proxy);
               }
@@ -4116,7 +4295,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
   }, {
     key: "mapBindTag",
     value: function mapBindTag(tag) {
-      var _this7 = this;
+      var _this8 = this;
 
       var bindArg = tag.getAttribute('cv-bind');
       var proxy = this.args;
@@ -4136,8 +4315,8 @@ var View = /*#__PURE__*/function (_Mixin$with) {
       if (proxy !== this.args) {
         this.subBindings[bindArg] = this.subBindings[bindArg] || [];
         this.onRemove(this.args.bindTo(top, function () {
-          while (_this7.subBindings.length) {
-            _this7.subBindings.shift()();
+          while (_this8.subBindings.length) {
+            _this8.subBindings.shift()();
           }
         }));
       }
@@ -4181,7 +4360,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
 
               selectOption();
 
-              _this7.nodesAttached.add(selectOption);
+              _this8.nodesAttached.add(selectOption);
             } else {
               tag.value = v == null ? '' : v;
             }
@@ -4205,17 +4384,18 @@ var View = /*#__PURE__*/function (_Mixin$with) {
             }
 
             var onAttach = function onAttach(parentNode) {
-              if (v.dispatchAttach()) {
-                v.attached(parentNode);
-                v.dispatchAttached();
-              }
+              v.dispatchDomAttached(_this8); // if(v.nodes.length && v.dispatchAttach())
+              // {
+              // 	v.attached(parentNode.getRootNode(), parentNode, this);
+              // 	v.dispatchAttached(parentNode.getRootNode(), parentNode, this);
+              // }
             };
 
-            _this7.nodesAttached.add(onAttach);
+            _this8.nodesAttached.add(onAttach);
 
             v.render(tag);
             v.onRemove(function () {
-              return _this7.nodesAttached.remove(onAttach);
+              return _this8.nodesAttached.remove(onAttach);
             });
           } else if (v instanceof Node) {
             tag.insert(v);
@@ -4365,7 +4545,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
   }, {
     key: "mapOnTag",
     value: function mapOnTag(tag) {
-      var _this8 = this;
+      var _this9 = this;
 
       var referents = String(tag.getAttribute('cv-on'));
       referents.split(';').map(function (a) {
@@ -4400,7 +4580,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
         }
 
         var eventMethod;
-        var parent = _this8;
+        var parent = _this9;
 
         while (parent) {
           if (typeof parent[callbackName] === 'function') {
@@ -4438,11 +4618,11 @@ var View = /*#__PURE__*/function (_Mixin$with) {
             } else if (arg === '$tag') {
               return tag;
             } else if (arg === '$parent') {
-              return _this8.parent;
+              return _this9.parent;
             } else if (arg === '$subview') {
-              return _this8;
-            } else if (arg in _this8.args) {
-              return _this8.args[arg];
+              return _this9;
+            } else if (arg in _this9.args) {
+              return _this9.args[arg];
             } else if (match = /^['"]([\w-]+?)["']$/.exec(arg)) {
               return match[1];
             }
@@ -4481,19 +4661,19 @@ var View = /*#__PURE__*/function (_Mixin$with) {
             break;
 
           case '_attach':
-            _this8.nodesAttached.add(eventListener);
+            _this9.nodesAttached.add(eventListener);
 
             break;
 
           case '_detach':
-            _this8.nodesDetached.add(eventListener);
+            _this9.nodesDetached.add(eventListener);
 
             break;
 
           default:
             tag.addEventListener(eventName, eventListener, eventOptions);
 
-            _this8.onRemove(function () {
+            _this9.onRemove(function () {
               tag.removeEventListener(eventName, eventListener, eventOptions);
             });
 
@@ -4569,7 +4749,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
   }, {
     key: "mapWithTag",
     value: function mapWithTag(tag) {
-      var _this9 = this;
+      var _this10 = this;
 
       var withAttr = tag.getAttribute('cv-with');
       var carryAttr = tag.getAttribute('cv-carry');
@@ -4593,17 +4773,17 @@ var View = /*#__PURE__*/function (_Mixin$with) {
       }
 
       var debind = this.args.bindTo(withAttr, function (v, k, t, d) {
-        if (_this9.withViews.has(tag)) {
-          _this9.withViews["delete"](tag);
+        if (_this10.withViews.has(tag)) {
+          _this10.withViews["delete"](tag);
         }
 
         while (tag.firstChild) {
           tag.removeChild(tag.firstChild);
         }
 
-        var view = new viewClass({}, _this9);
+        var view = new viewClass({}, _this10);
 
-        _this9.onRemove(function (view) {
+        _this10.onRemove(function (view) {
           return function () {
             view.remove();
           };
@@ -4612,13 +4792,13 @@ var View = /*#__PURE__*/function (_Mixin$with) {
         view.template = subTemplate;
 
         var _loop7 = function _loop7(i) {
-          var debind = _this9.args.bindTo(carryProps[i], function (v, k) {
+          var debind = _this10.args.bindTo(carryProps[i], function (v, k) {
             view.args[k] = v;
           });
 
           view.onRemove(debind);
 
-          _this9.onRemove(function () {
+          _this10.onRemove(function () {
             debind();
             view.remove();
           });
@@ -4636,7 +4816,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
             v[kk] = vv;
           });
 
-          _this9.onRemove(function () {
+          _this10.onRemove(function () {
             debind();
 
             if (!v.isBound()) {
@@ -4661,10 +4841,10 @@ var View = /*#__PURE__*/function (_Mixin$with) {
 
         view.render(tag);
 
-        _this9.withViews.set(tag, view);
+        _this10.withViews.set(tag, view);
       });
       this.onRemove(function () {
-        _this9.withViews["delete"](tag);
+        _this10.withViews["delete"](tag);
 
         debind();
       });
@@ -4673,7 +4853,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
   }, {
     key: "mapViewTag",
     value: function mapViewTag(tag) {
-      var _this10 = this;
+      var _this11 = this;
 
       var viewAttr = tag.getAttribute('cv-view');
       tag.removeAttribute('cv-view');
@@ -4697,9 +4877,9 @@ var View = /*#__PURE__*/function (_Mixin$with) {
         return function () {
           view.remove();
 
-          _this10.views["delete"](tag);
+          _this11.views["delete"](tag);
 
-          _this10.views["delete"](viewName);
+          _this11.views["delete"](viewName);
         };
       }(view));
       view.template = subTemplate;
@@ -4709,7 +4889,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
   }, {
     key: "mapEachTag",
     value: function mapEachTag(tag) {
-      var _this11 = this;
+      var _this12 = this;
 
       var eachAttr = tag.getAttribute('cv-each');
       var viewAttr = tag.getAttribute('cv-view');
@@ -4728,23 +4908,23 @@ var View = /*#__PURE__*/function (_Mixin$with) {
           keyProp = _eachAttr$split2[2];
 
       var debind = this.args.bindTo(eachProp, function (v, k, t, d, p) {
-        if (_this11.viewLists.has(tag)) {
-          _this11.viewLists.get(tag).remove();
+        if (_this12.viewLists.has(tag)) {
+          _this12.viewLists.get(tag).remove();
         }
 
-        var viewList = new _ViewList.ViewList(subTemplate, asProp, v, _this11, keyProp, viewClass);
+        var viewList = new _ViewList.ViewList(subTemplate, asProp, v, _this12, keyProp, viewClass);
 
         var viewListRemover = function viewListRemover() {
           return viewList.remove();
         };
 
-        _this11.onRemove(viewListRemover);
+        _this12.onRemove(viewListRemover);
 
         viewList.onRemove(function () {
-          return _this11._onRemove.remove(viewListRemover);
+          return _this12._onRemove.remove(viewListRemover);
         });
 
-        var debindA = _this11.args.bindTo(function (v, k, t, d) {
+        var debindA = _this12.args.bindTo(function (v, k, t, d) {
           if (k === '_id') {
             return;
           }
@@ -4762,25 +4942,25 @@ var View = /*#__PURE__*/function (_Mixin$with) {
           }
 
           if (d) {
-            delete _this11.args[k];
+            delete _this12.args[k];
           }
 
-          if (k in _this11.args) {
-            _this11.args[k] = v;
+          if (k in _this12.args) {
+            _this12.args[k] = v;
           }
         });
         viewList.onRemove(debindA);
         viewList.onRemove(debindB);
 
-        _this11.onRemove(debindA);
+        _this12.onRemove(debindA);
 
-        _this11.onRemove(debindB);
+        _this12.onRemove(debindB);
 
         while (tag.firstChild) {
           tag.removeChild(tag.firstChild);
         }
 
-        _this11.viewLists.set(tag, viewList);
+        _this12.viewLists.set(tag, viewList);
 
         viewList.render(tag);
       });
@@ -4790,10 +4970,10 @@ var View = /*#__PURE__*/function (_Mixin$with) {
   }, {
     key: "mapIfTag",
     value: function mapIfTag(tag) {
-      var _this12 = this;
+      var _this13 = this;
 
       var sourceTag = tag;
-      var viewProperty = tag.getAttribute('cv-view');
+      var viewProperty = sourceTag.getAttribute('cv-view');
       var ifProperty = sourceTag.getAttribute('cv-if');
       var isProperty = sourceTag.getAttribute('cv-is');
       var inverted = false;
@@ -4822,7 +5002,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
       var ifDoc = new DocumentFragment();
       var view = new viewClass(this.args, bindingView);
       this.onRemove(view.tags.bindTo(function (v, k) {
-        _this12.tags[k] = v;
+        _this13.tags[k] = v;
       }));
       view.template = subTemplate;
       var proxy = bindingView.args;
@@ -4890,7 +5070,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
       this.onRemove(function () {
         view.remove();
 
-        if (bindingView !== _this12) {
+        if (bindingView !== _this13) {
           bindingView.remove();
         }
       });
@@ -5035,7 +5215,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
   }, {
     key: "syncBind",
     value: function syncBind(subView) {
-      var _this13 = this;
+      var _this14 = this;
 
       var debindA = this.args.bindTo(function (v, k, t, d) {
         if (k === '_id') {
@@ -5074,16 +5254,16 @@ var View = /*#__PURE__*/function (_Mixin$with) {
           p.remove();
         }
 
-        if (k in _this13.args) {
-          _this13.args[k] = v;
+        if (k in _this14.args) {
+          _this14.args[k] = v;
         }
       });
       this.onRemove(debindA);
       this.onRemove(debindB);
       subView.onRemove(function () {
-        _this13._onRemove.remove(debindA);
+        _this14._onRemove.remove(debindA);
 
-        _this13._onRemove.remove(debindB);
+        _this14._onRemove.remove(debindB);
       });
     }
   }, {
@@ -5098,42 +5278,35 @@ var View = /*#__PURE__*/function (_Mixin$with) {
       return !!String(str).match(this.interpolateRegex);
     }
   }, {
-    key: "uuid",
-    value: function uuid() {
-      return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, function (c) {
-        return (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16);
-      });
-    }
-  }, {
     key: "remove",
     value: function remove() {
-      var _this14 = this;
+      var _this15 = this;
 
       var now = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 
       var remover = function remover() {
-        for (var _i6 in _this14.tags) {
-          if (Array.isArray(_this14.tags[_i6])) {
-            _this14.tags[_i6] && _this14.tags[_i6].map(function (t) {
+        for (var _i6 in _this15.tags) {
+          if (Array.isArray(_this15.tags[_i6])) {
+            _this15.tags[_i6] && _this15.tags[_i6].map(function (t) {
               return t.remove();
             });
 
-            _this14.tags[_i6].splice(0);
+            _this15.tags[_i6].splice(0);
           } else {
-            _this14.tags[_i6] && _this14.tags[_i6].remove();
-            _this14.tags[_i6] = undefined;
+            _this15.tags[_i6] && _this15.tags[_i6].remove();
+            _this15.tags[_i6] = undefined;
           }
         }
 
-        for (var _i7 in _this14.nodes) {
-          _this14.nodes[_i7] && _this14.nodes[_i7].dispatchEvent(new Event('cvDomDetached'));
-          _this14.nodes[_i7] && _this14.nodes[_i7].remove();
-          _this14.nodes[_i7] = undefined;
+        for (var _i7 in _this15.nodes) {
+          _this15.nodes[_i7] && _this15.nodes[_i7].dispatchEvent(new Event('cvDomDetached'));
+          _this15.nodes[_i7] && _this15.nodes[_i7].remove();
+          _this15.nodes[_i7] = undefined;
         }
 
-        _this14.nodes.splice(0);
+        _this15.nodes.splice(0);
 
-        _this14.firstNode = _this14.lastNode = undefined;
+        _this15.firstNode = _this15.lastNode = undefined;
       };
 
       if (now) {
@@ -5238,14 +5411,14 @@ var View = /*#__PURE__*/function (_Mixin$with) {
   }, {
     key: "findTags",
     value: function findTags(selector) {
-      var _this15 = this;
+      var _this16 = this;
 
       return this.nodes.filter(function (n) {
         return n.querySelectorAll;
       }).map(function (n) {
         return _toConsumableArray(n.querySelectorAll(selector));
       }).flat().map(function (n) {
-        return new _Tag.Tag(n, _this15, undefined, undefined, _this15);
+        return new _Tag.Tag(n, _this16, undefined, undefined, _this16);
       });
     }
   }, {
@@ -5265,11 +5438,11 @@ var View = /*#__PURE__*/function (_Mixin$with) {
   }, {
     key: "stringTransformer",
     value: function stringTransformer(methods) {
-      var _this16 = this;
+      var _this17 = this;
 
       return function (x) {
         for (var m in methods) {
-          var parent = _this16;
+          var parent = _this17;
           var method = methods[m];
 
           while (parent && !parent[method]) {
@@ -5316,7 +5489,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
   }, {
     key: "listen",
     value: function listen(node, eventName, callback, options) {
-      var _this17 = this;
+      var _this18 = this;
 
       if (typeof node === 'string') {
         options = callback;
@@ -5331,7 +5504,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
 
       if (Array.isArray(node)) {
         var removers = node.map(function (n) {
-          return _this17.listen(n, eventName, callback, options);
+          return _this18.listen(n, eventName, callback, options);
         });
         return function () {
           return removers.map(function (r) {
@@ -5371,9 +5544,25 @@ var View = /*#__PURE__*/function (_Mixin$with) {
       return this.nodes;
     }
   }], [{
+    key: "from",
+    value: function from(template) {
+      var args = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var parent = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+      var view = new this(args, parent);
+      view.template = template;
+      return view;
+    }
+  }, {
     key: "isView",
     value: function isView() {
       return View;
+    }
+  }, {
+    key: "uuid",
+    value: function uuid() {
+      return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, function (c) {
+        return (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16);
+      });
     }
   }]);
 
@@ -5401,6 +5590,8 @@ Object.defineProperty(exports, "__esModule", {
 exports.ViewList = void 0;
 
 var _Bindable = require("./Bindable");
+
+var _SetMap = require("./SetMap");
 
 var _View = require("./View");
 
@@ -5546,6 +5737,14 @@ var ViewList = /*#__PURE__*/function () {
       Promise.all(renders).then(function (views) {
         return _this2.renderComplete(views);
       });
+      this.parent.dispatchEvent(new CustomEvent('listRendered', {
+        detail: {
+          detail: {
+            key: this.subProperty,
+            value: this.args.value
+          }
+        }
+      }));
     }
   }, {
     key: "reRender",
@@ -5557,12 +5756,17 @@ var ViewList = /*#__PURE__*/function () {
       }
 
       var views = [];
+      var existingViews = new _SetMap.SetMap();
 
       for (var i in this.views) {
-        views[i] = this.views[i];
+        var view = this.views[i];
+        var rawValue = view.args[this.subProperty];
+        existingViews.add(rawValue, view);
+        views[i] = view;
       }
 
       var finalViews = [];
+      var finalViewSet = new Set();
       this.upDebind && this.upDebind.map(function (d) {
         return d && d();
       });
@@ -5584,25 +5788,46 @@ var ViewList = /*#__PURE__*/function () {
           k = Number(k);
         }
 
-        for (var _j = views.length - 1; _j >= 0; _j--) {
-          if (views[_j] && _this3.args.value[_i] !== undefined && _this3.args.value[_i] === views[_j].args[_this3.subProperty]) {
+        if (_this3.args.value[_i] !== undefined && existingViews.has(_this3.args.value[_i])) {
+          var existingView = existingViews.getOne(_this3.args.value[_i]);
+
+          if (existingView) {
+            existingView.args[_this3.keyProperty] = _i;
+            finalViews[k] = existingView;
+            finalViewSet.add(existingView);
             found = true;
-            finalViews[k] = views[_j];
 
             if (!isNaN(k)) {
               minKey = Math.min(minKey, k);
               k > 0 && (anteMinKey = Math.min(anteMinKey, k));
             }
 
-            finalViews[k].args[_this3.keyProperty] = _i;
-            delete views[_j];
-            break;
+            existingViews.remove(_this3.args.value[_i], existingView);
           }
-        }
+        } // for(let j = views.length - 1; j >= 0; j--)
+        // {
+        // 	if(views[j]
+        // 		&& this.args.value[i] !== undefined
+        // 		&& this.args.value[i] === views[j].args[ this.subProperty ]
+        // 	){
+        // 		found = true;
+        // 		finalViews[k] = views[j];
+        // 		if(!isNaN(k))
+        // 		{
+        // 			minKey = Math.min(minKey, k);
+        // 			k > 0 && (anteMinKey = Math.min(anteMinKey, k));
+        // 		}
+        // 		finalViews[k].args[ this.keyProperty ] = i;
+        // 		delete views[j];
+        // 		break;
+        // 	}
+        // }
+
 
         if (!found) {
           var viewArgs = {};
-          var view = finalViews[k] = new _this3.viewClass(viewArgs, _this3.parent);
+
+          var _view = finalViews[k] = new _this3.viewClass(viewArgs, _this3.parent);
 
           if (!isNaN(k)) {
             minKey = Math.min(minKey, k);
@@ -5631,7 +5856,8 @@ var ViewList = /*#__PURE__*/function () {
 
             viewArgs[k] = v;
           });
-          view.onRemove(function () {
+
+          _view.onRemove(function () {
             _this3.upDebind[k] && _this3.upDebind[k]();
             _this3.downDebind[k] && _this3.downDebind[k]();
             delete _this3.downDebind[k];
@@ -5667,16 +5893,7 @@ var ViewList = /*#__PURE__*/function () {
       }
 
       for (var _i2 in views) {
-        var found = false;
-
-        for (var j in finalViews) {
-          if (views[_i2] === finalViews[j]) {
-            found = true;
-            break;
-          }
-        }
-
-        if (!found) {
+        if (!finalViewSet.has(views[_i2])) {
           views[_i2].remove();
         }
       }
@@ -5761,6 +5978,14 @@ var ViewList = /*#__PURE__*/function () {
       }
 
       this.willReRender = false;
+      this.parent.dispatchEvent(new CustomEvent('listRendered', {
+        detail: {
+          detail: {
+            key: this.subProperty,
+            value: this.args.value
+          }
+        }
+      }));
     }
   }, {
     key: "pause",
@@ -5935,6 +6160,8 @@ require.register("curvature/model/Database.js", function(exports, require, modul
   (function() {
     "use strict";
 
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
@@ -5945,8 +6172,6 @@ var _Bindable = require("../base/Bindable");
 var _Mixin = require("../base/Mixin");
 
 var _EventTargetMixin = require("../mixin/EventTargetMixin");
-
-function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
 
@@ -5976,7 +6201,7 @@ function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) ===
 
 function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
 
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
 
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
@@ -6678,13 +6903,6 @@ var Saved = Symbol('Saved');
 var Changed = Symbol('Changed');
 
 var Model = /*#__PURE__*/function () {
-  _createClass(Model, null, [{
-    key: "keyProps",
-    get: function get() {
-      return ['id', 'class'];
-    }
-  }]);
-
   function Model() {
     _classCallCheck(this, Model);
 
@@ -6757,11 +6975,16 @@ var Model = /*#__PURE__*/function () {
       return this[Saved];
     }
   }], [{
+    key: "keyProps",
+    get: function get() {
+      return ['id', 'class'];
+    }
+  }, {
     key: "from",
     value: function from(skeleton) {
       var _this2 = this;
 
-      var keyProps = this.keyProps;
+      var keyProps = this.prototype.keyProps;
       var cacheKey = keyProps.map(function (prop) {
         return skeleton[prop];
       }).join('::');
