@@ -70,8 +70,7 @@ const view = View.from(
 );
 
 view.githubLoginClicked = event => {
-	const redirectUri = 'https://sycamore.seanmorr.is/';
-	// const redirectUri = 'https://sycamore.seanmorr.is/github-auth/accept';
+	const redirectUri = 'https://sycamore.seanmorr.is/github-auth/accept';
 	const clientId    = '4c8f4209d3c4ad741d2c';
 	const state       = Math.random().toString(36);
 
