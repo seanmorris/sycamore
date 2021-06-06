@@ -27,18 +27,18 @@ provider "cloudflare" {
 	api_token  = var.CLOUDFLARE_API_TOKEN
 }
 
-resource "cloudflare_workers_kv_namespace" "github-auth-kv" {
-	title = "github-auth-kv"
-}
+# resource "cloudflare_workers_kv_namespace" "github-auth-kv" {
+# 	title = "github-auth-kv"
+# }
 
 resource "cloudflare_worker_script" "auth_route" {
 	name    = "github-auth"
 	content = file("index.js")
 
-	kv_namespace_binding {
-		namespace_id = cloudflare_workers_kv_namespace.github-auth-kv.id
-		name         = "AUTH_KV"
-	}
+	# kv_namespace_binding {
+	# 	namespace_id = cloudflare_workers_kv_namespace.github-auth-kv.id
+	# 	name         = "AUTH_KV"
+	# }
 
 	plain_text_binding {
 		name = "GHAPI_CLIENT_ID"
