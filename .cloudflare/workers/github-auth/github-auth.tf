@@ -34,8 +34,6 @@ provider "cloudflare" {
 resource "cloudflare_worker_script" "auth_route" {
 	name       = "github-auth"
 	content    = file("index.js")
-	account_id = var.CLOUDFLARE_ACCOUNT_ID
-	api_token  = var.CLOUDFLARE_API_TOKEN
 
 	# kv_namespace_binding {
 	# 	namespace_id = cloudflare_workers_kv_namespace.github-auth-kv.id
