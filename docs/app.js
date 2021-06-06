@@ -5948,10 +5948,39 @@ function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o =
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-var view = _View.View.from("<ul class = \"messages\" cv-each = \"posts:post\">\n\t\t<li data-type = \"[[post.type]]\">\n\t\t\t<section>\n\t\t\t\t<div class = \"avatar\"></div>\n\t\t\t\t<span class = \"author\">[[post.author]]</span>\n\t\t\t</section>\n\t\t\t\n\t\t\t<section>\n\t\t\t\t<span class = \"body\">[[post.slug]]</span>\n\t\t\t</section>\n\t\t\t\n\t\t\t<section>\n\t\t\t\t<a href = \"/messages/[[post.name]]\">go</a>\n\t\t\t</section>\n\t\t</li>\n\t</ul>");
+var gitHubListener = function gitHubListener(event) {
+  var token = event.data;
+
+  if (token && token.access_token) {
+    sessionStorage.setItem('sycamore::github-token', JSON.stringify(token));
+  } else {
+    sessionStorage.setItem('sycamore::github-token', '{}');
+  }
+};
+
+var view = _View.View.from("<section class = \"header\">\n\t\n\t\t<div class = \"branding\">\n\t\t\t<h1><a cv-link = \"/\">Sean Morris</a></h1>\n\t\t\t<small>A <a cv-link = \"https://github.com/seanmorris/sycamore\">Sycamore</a> Profile</small>\n\t\t</div>\n\t\t\n\t\t<div class = \"menu\">\n\t\t\t<a cv-on = \"click:githubLoginClicked\">\n\t\t\t\t<img class = \"icon\" src = \"/user.svg\">\n\t\t\t</a>\n\t\t</div>\n\t\n\t</section>\n\n\t<form class = \"post\">\n\t\t<input type = \"text\" placeholder = \"Write a post!\" />\n\t\t<input type = \"submit\" />\n\t</form>\n\n\t<ul class = \"messages\" cv-each = \"posts:post\">\n\n\t\t<li data-type = \"[[post.type]]\">\n\t\t\t\n\t\t\t<section class = \"author\">\n\t\t\t\t<div class = \"avatar\"></div>\n\t\t\t\t<span class = \"author\">[[post.author]]</span>\n\t\t\t</section>\n\t\t\t\n\t\t\t<section>\n\t\t\t\t<small title = \"[[post.timecode]]\">[[post.time]]</small>\n\t\t\t</section>\n\t\t\t\n\t\t\t<section>\n\t\t\t\t<span class = \"body\">[[post.slug]]</span>\n\t\t\t</section>\n\t\t\t\n\t\t\t<section>\n\t\t\t\t<a cv-link = \"/messages/[[post.name]]\">\n\t\t\t\t\t[[post.name]]\n\t\t\t\t\t<img class = \"icon\" src = \"/go.svg\" />\n\t\t\t\t</a>\n\t\t\t</section>\n\t\t\n\t\t</li>\n\t</ul>");
+
+view.githubLoginClicked = function (event) {
+  var redirectUri = 'https://sycamore.seanmorr.is/github-auth/accept';
+  var clientId = '4c8f4209d3c4ad741d2c';
+  var state = Math.random().toString(36);
+  var loginWindow = window.open('https://github.com/login/oauth/authorize' + '?redirect_uri=' + redirectUri + '&client_id=' + clientId + '&scope=public_repo' + '&state=' + state, "github-login", "left=100,top=100,width=750,height=500,resizable=0,scrollbars=0,location=0,menubar=0,toolbar=0,status=0");
+  window.addEventListener('message', gitHubListener, false);
+
+  var checkLogin = function checkLogin() {
+    if (!loginWindow.closed) {
+      return;
+    }
+
+    clearInterval(globalThis.loginChecker);
+    accept();
+  };
+
+  globalThis.loginChecker = setInterval(100, checkLogin);
+};
 
 view.args.posts = [];
-fetch('feeds.list').then(function (response) {
+fetch('/feeds.list').then(function (response) {
   return response.text();
 }).then(function (feedList) {
   var feeds = feedList.split(/\n/);
@@ -5967,7 +5996,7 @@ fetch('feeds.list').then(function (response) {
         continue;
       }
 
-      fetch(feed).then(function (response) {
+      fetch('/' + feed).then(function (response) {
         return response.text();
       }).then(function (feed) {
         var messageLines = feed.split(/\n/);
@@ -6008,9 +6037,12 @@ fetch('feeds.list').then(function (response) {
                 body: body,
                 signature: signature
               };
+              console.log(message.header.issued * 1000);
               view.args.posts.push({
                 name: message.header.name,
                 type: message.header.type,
+                time: new Date(message.header.issued * 1000),
+                timecode: message.header.issued,
                 author: message.header.author,
                 slug: message.header.type.substr(0, 10) === 'text/plain' ? message.body.substr(0, 140) : null
               });

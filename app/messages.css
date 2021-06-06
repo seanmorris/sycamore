@@ -1,19 +1,68 @@
-ul.messages li {
-	width: 30rem;
+form.post,
+ul.messages {
+	display: block;
+	width: 30em;
 	margin: auto;
-	border:  1px solid black;
-	padding: 1em;
-	margin-bottom: 1em;
 	list-style: none;
+	padding-left: 0;
+}
+
+form.post,
+ul.messages li {
+	margin-bottom: 1em;
+	box-sizing: border-box;
+	padding: 1em;
+	border:  1px solid black;
+	background-color: rgba(255,255,255,0.65);
+}
+
+form.post {
+	display: flex;
+}
+
+form.post input[type="text"] {
+	margin-right: 0.5em;
+	display: block;
+	width: 100%;
+	font-size: 1.25em;
+	flex; 1;
+}
+
+ul.messages li:not([data-type^="text/plain"]) {
+	display: none;
 }
 
 ul.messages li section:not(:last-child) {
-	margin-bottom: 1em;
+	margin-bottom: 0.5rem;
 }
 
 ul.messages li section:last-child {
 	text-align: right;
+	font-size: 0.75rem;
 }
+
+ul.messages li div.avatar {
+	display: inline-block;
+	border: 1px solid black;
+	border-radius: 50%;
+	background-image: url(/avatar.jpg);
+	background-size: contain;
+	width: 1.75em;
+	height: 1.75em;
+}
+
+ul.messages li section.author {
+	display: flex;
+	flex-direction: row;
+	align-content: flex-end;
+	font-weight: bold;
+}
+
+ul.messages li span.author {
+	line-height: 2rem;
+	margin-left: 0.5rem;
+}
+
 
 ul.messages li span.author,
 ul.messages li span.body {
@@ -21,6 +70,11 @@ ul.messages li span.body {
 }
 
 ul.messages li span.body {
-	font-size: 1.25rem;
+	font-size: 1.35rem;
 	white-space: pre-wrap;
+}
+
+ul.messages li pre {
+	margin-bottom: 0;
+	margin-top: 0;
 }

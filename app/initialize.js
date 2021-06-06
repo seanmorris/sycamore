@@ -1,11 +1,51 @@
 import { View } from 'curvature/base/View';
 
+const gitHubListener = event => {
+
+	const token = event.data;
+
+	if(token && token.access_token)
+	{
+		sessionStorage.setItem('sycamore::github-token', JSON.stringify(token));
+	}
+	else
+	{
+		sessionStorage.setItem('sycamore::github-token', '{}');
+	}
+};
+
 const view = View.from(
-	`<ul class = "messages" cv-each = "posts:post">
+	`<section class = "header">
+	
+		<div class = "branding">
+			<h1><a cv-link = "/">Sean Morris</a></h1>
+			<small>A <a cv-link = "https://github.com/seanmorris/sycamore">Sycamore</a> Profile</small>
+		</div>
+		
+		<div class = "menu">
+			<a cv-on = "click:githubLoginClicked">
+				<img class = "icon" src = "/user.svg">
+			</a>
+		</div>
+	
+	</section>
+
+	<form class = "post">
+		<input type = "text" placeholder = "Write a post!" />
+		<input type = "submit" />
+	</form>
+
+	<ul class = "messages" cv-each = "posts:post">
+
 		<li data-type = "[[post.type]]">
-			<section>
+			
+			<section class = "author">
 				<div class = "avatar"></div>
 				<span class = "author">[[post.author]]</span>
+			</section>
+			
+			<section>
+				<small title = "[[post.timecode]]">[[post.time]]</small>
 			</section>
 			
 			<section>
@@ -13,15 +53,50 @@ const view = View.from(
 			</section>
 			
 			<section>
-				<a href = "/messages/[[post.name]]">go</a>
+				<a cv-link = "/messages/[[post.name]]">
+					[[post.name]]
+					<img class = "icon" src = "/go.svg" />
+				</a>
 			</section>
+		
 		</li>
 	</ul>`
 );
 
+view.githubLoginClicked = event => {
+	const redirectUri = 'https://sycamore.seanmorr.is/github-auth/accept';
+	const clientId    = '4c8f4209d3c4ad741d2c';
+	const state       = Math.random().toString(36);
+
+	const loginWindow = window.open(
+		'https://github.com/login/oauth/authorize'
+			+ '?redirect_uri=' + redirectUri
+			+ '&client_id=' + clientId
+			+ '&scope=public_repo'
+			+ '&state=' + state
+		, `github-login`
+		, `left=100,top=100,width=750,height=500,resizable=0,scrollbars=0,location=0,menubar=0,toolbar=0,status=0`
+	);
+
+	window.addEventListener('message', gitHubListener, false);
+
+	const checkLogin = () => {
+		if(!loginWindow.closed)
+		{
+			return;
+		}
+
+		clearInterval(globalThis.loginChecker);
+
+		accept();
+	};
+
+	globalThis.loginChecker = setInterval(100, checkLogin);
+}
+
 view.args.posts = [];
 
-fetch('feeds.list').then(response => response.text()).then(feedList => {
+fetch('/feeds.list').then(response => response.text()).then(feedList => {
 
 	const feeds = feedList.split(/\n/);
 
@@ -29,7 +104,7 @@ fetch('feeds.list').then(response => response.text()).then(feedList => {
 	{
 		if(!feed) { continue; }
 
-		fetch(feed).then(response => response.text()).then(feed => {
+		fetch('/' + feed).then(response => response.text()).then(feed => {
 
 			const messageLines = feed.split(/\n/);
 
@@ -61,11 +136,15 @@ fetch('feeds.list').then(response => response.text()).then(feedList => {
 
 					const message = {header: JSON.parse(header), body, signature};
 
+					console.log(message.header.issued * 1000);
+
 					view.args.posts.push({
-						name:     message.header.name
-						, type:   message.header.type
-						, author: message.header.author
-						, slug:   message.header.type.substr(0, 10) === 'text/plain' 
+						name:       message.header.name
+						, type:     message.header.type
+						, time:     new Date( message.header.issued * 1000 )
+						, timecode: message.header.issued
+						, author:   message.header.author
+						, slug:     message.header.type.substr(0, 10) === 'text/plain' 
 							? message.body.substr(0, 140)
 							: null
 					});
