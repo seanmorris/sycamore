@@ -23,8 +23,8 @@ variable "CLOUDFLARE_HOSTNAME" {
 }
 
 provider "cloudflare" {
-	account_id = var.CLOUDFLARE_ACCOUNT_ID
-	api_token  = var.CLOUDFLARE_API_TOKEN
+	account_id = "${var.CLOUDFLARE_ACCOUNT_ID}"
+	api_token  = "${var.CLOUDFLARE_API_TOKEN}"
 }
 
 # resource "cloudflare_workers_kv_namespace" "github-auth-kv" {
