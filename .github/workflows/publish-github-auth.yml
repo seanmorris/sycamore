@@ -12,7 +12,7 @@ on:
 jobs:
   publish-workers:
     name:    Publish Github Auth Worker
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
 
     steps:
       - name: Checkout Repository
@@ -40,7 +40,7 @@ jobs:
           CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           SCRIPT_NAME: github-auth
 
-      - name: Init, Plan, Deploy
+      - name: Deploy
         run: set -eux; curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo apt-key add - && sudo apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main" && sudo apt-get update && sudo apt-get install terraform && terraform init . && terraform plan . && terraform apply --auto-approve .
         working-directory: '.cloudflare/workers/github-auth'
         env:
