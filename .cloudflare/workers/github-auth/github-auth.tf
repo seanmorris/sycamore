@@ -28,11 +28,11 @@ provider "cloudflare" {
 }
 
 # resource "cloudflare_workers_kv_namespace" "github-auth-kv" {
-# 	title = "github-auth-kv"
+# 	title = "sycamore-github-auth-kv"
 # }
 
 resource "cloudflare_worker_script" "auth_route" {
-	name       = "github-auth"
+	name       = "sycamore-github-auth"
 	content    = file("index.js")
 
 	# kv_namespace_binding {
