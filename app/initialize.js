@@ -1,5 +1,26 @@
 import { View } from 'curvature/base/View';
 
+const view = View.from(
+	`<ul class = "messages" cv-each = "posts:post">
+		<li data-type = "[[post.type]]">
+			<section>
+				<div class = "avatar"></div>
+				<span class = "author">[[post.author]]</span>
+			</section>
+			
+			<section>
+				<span class = "body">[[post.slug]]</span>
+			</section>
+			
+			<section>
+				<a href = "/messages/[[post.name]]">go</a>
+			</section>
+		</li>
+	</ul>`
+);
+
+view.args.posts = [];
+
 fetch('feeds.list').then(response => response.text()).then(feedList => {
 
 	const feeds = feedList.split(/\n/);
@@ -21,13 +42,33 @@ fetch('feeds.list').then(response => response.text()).then(feedList => {
 				fetch('/messages/' + messageUrl + '.smsg').then(response => response.text()).then(messageBody => {
 					
 					const slug      = messageBody.substring(0, 3);
-					const headerLen = messageBody.substring(4, 12);
-
-					console.log(headerLen);
 					
-					const headerLenBytes = Uint8Array.from(headerLen);
+					const headerHex = messageBody.substr(3, 10);
+					const headerLen = parseInt(headerHex);
+					const header    = messageBody.substr(14, headerLen);
+					
+					const bodyStart = headerLen + 25;
 
-					console.log(slug, headerLen, headerLenBytes);
+					const bodyHex = messageBody.substr(headerLen + 14, 10);
+					const bodyLen = parseInt(bodyHex);
+					const body    = messageBody.substr(bodyStart, bodyLen);
+
+					const signatureStart = bodyStart + bodyLen + 1;
+					
+					const signatureHex = messageBody.substr(signatureStart, 10);
+					const signatureLen = parseInt(signatureHex);
+					const signature    = messageBody.substr(bodyStart + bodyLen + 12);
+
+					const message = {header: JSON.parse(header), body, signature};
+
+					view.args.posts.push({
+						name:     message.header.name
+						, type:   message.header.type
+						, author: message.header.author
+						, slug:   message.header.type.substr(0, 10) === 'text/plain' 
+							? message.body.substr(0, 140)
+							: null
+					});
 				});
 
 			}
@@ -36,13 +77,5 @@ fetch('feeds.list').then(response => response.text()).then(feedList => {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-	const view = View.from(
-		`<ul>
-			<li cv-each = "posts:post">
-				<a href = "/messages/[[post.name]]">[[post.name]]</a>
-			</li>
-		</ul>`
-	);
-
 	view.render(document.body);
 });

@@ -5948,6 +5948,9 @@ function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o =
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
+var view = _View.View.from("<ul class = \"messages\" cv-each = \"posts:post\">\n\t\t<li data-type = \"[[post.type]]\">\n\t\t\t<section>\n\t\t\t\t<div class = \"avatar\"></div>\n\t\t\t\t<span class = \"author\">[[post.author]]</span>\n\t\t\t</section>\n\t\t\t\n\t\t\t<section>\n\t\t\t\t<span class = \"body\">[[post.slug]]</span>\n\t\t\t</section>\n\t\t\t\n\t\t\t<section>\n\t\t\t\t<a href = \"/messages/[[post.name]]\">go</a>\n\t\t\t</section>\n\t\t</li>\n\t</ul>");
+
+view.args.posts = [];
 fetch('feeds.list').then(function (response) {
   return response.text();
 }).then(function (feedList) {
@@ -5989,10 +5992,28 @@ fetch('feeds.list').then(function (response) {
               return response.text();
             }).then(function (messageBody) {
               var slug = messageBody.substring(0, 3);
-              var headerLen = messageBody.substring(4, 12);
-              console.log(headerLen);
-              var headerLenBytes = Uint8Array.from(headerLen);
-              console.log(slug, headerLen, headerLenBytes);
+              var headerHex = messageBody.substr(3, 10);
+              var headerLen = parseInt(headerHex);
+              var header = messageBody.substr(14, headerLen);
+              var bodyStart = headerLen + 25;
+              var bodyHex = messageBody.substr(headerLen + 14, 10);
+              var bodyLen = parseInt(bodyHex);
+              var body = messageBody.substr(bodyStart, bodyLen);
+              var signatureStart = bodyStart + bodyLen + 1;
+              var signatureHex = messageBody.substr(signatureStart, 10);
+              var signatureLen = parseInt(signatureHex);
+              var signature = messageBody.substr(bodyStart + bodyLen + 12);
+              var message = {
+                header: JSON.parse(header),
+                body: body,
+                signature: signature
+              };
+              view.args.posts.push({
+                name: message.header.name,
+                type: message.header.type,
+                author: message.header.author,
+                slug: message.header.type.substr(0, 10) === 'text/plain' ? message.body.substr(0, 140) : null
+              });
             });
           }
         } catch (err) {
@@ -6009,8 +6030,6 @@ fetch('feeds.list').then(function (response) {
   }
 });
 document.addEventListener('DOMContentLoaded', function () {
-  var view = _View.View.from("<ul>\n\t\t\t<li cv-each = \"posts:post\">\n\t\t\t\t<a href = \"/messages/[[post.name]]\">[[post.name]]</a>\n\t\t\t</li>\n\t\t</ul>");
-
   view.render(document.body);
 });
 });
