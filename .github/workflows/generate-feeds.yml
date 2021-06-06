@@ -38,6 +38,15 @@ jobs:
           AUTHOR: ${{ secrets.AUTHOR }}
           PRIVATE_KEY: ssh_key.pub
 
+      - name: Generate messages.
+        run:  bash bin/index-feeds.sh
+
+      - name: Add any feeds files.
+        run: '[[ -f ./docs/feeds.list ]] &&  git add ./docs/feeds.list'
+
+      - name: Add any feeds files.
+        run: '[[ -f ./docs/peers.list ]] &&  git add ./docs/feeds.list'
+
       - name: Add any feeds files.
         run:  git add ./docs/feeds/**
 

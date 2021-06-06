@@ -32,6 +32,7 @@ cat << EOF > ${OUTPUT}.HEAD
 	, "issued":  ${NOW}
 	, "request": "post" 
 	, "respond": null
+	, "topic:":  []
 	, "type":    "${TYPE}"
 	, "key"   :  "${PUBLIC_KEY_URL}"
 }

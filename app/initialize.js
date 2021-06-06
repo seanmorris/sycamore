@@ -1,4 +1,7 @@
+import { View } from 'curvature/base/View';
+
 document.addEventListener('DOMContentLoaded', function() {
-  // do your setup here
-  console.log('Initialized app');
+	const view = View.from('<b>test</b>');
+
+	view.render(document.body);
 });
