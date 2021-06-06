@@ -33,8 +33,8 @@ resource "cloudflare_worker_script" "proxy_script" {
 	}
 }
 
-resource "cloudflare_worker_route" "proxy_route" {
-  zone_id     = "${var.CLOUDFLARE_ZONE_ID}"
-  pattern     = "${var.CLOUDFLARE_HOSTNAME}/github-proxy/*"
-  script_name = cloudflare_worker_script.proxy_script.name
-}
+# resource "cloudflare_worker_route" "proxy_route" {
+#   zone_id     = "${var.CLOUDFLARE_ZONE_ID}"
+#   pattern     = "${var.CLOUDFLARE_HOSTNAME}/github-proxy/*"
+#   script_name = cloudflare_worker_script.proxy_script.name
+# }
