@@ -42,28 +42,36 @@ EOF
 
 printf '🍁\n' > ${OUTPUT};
 
-
 >&2 echo "Measure and add the header...";
 
-printf "%8x\n" $(wc -c  < ${OUTPUT}.HEAD) >> ${OUTPUT};
+wc -c  < ${OUTPUT}.HEAD
+
+printf '0x%08x\n' $(wc -c  < ${OUTPUT}.HEAD) >> ${OUTPUT};
+
 cat ${OUTPUT}.HEAD >> ${OUTPUT};
 
 >&2 echo "Measure and add the original message...";
 
-printf "%8x\n" $(wc -c  < ${INPUT}) >> ${OUTPUT};
+printf '0x%08x\n' $(wc -c  < ${INPUT}) >> ${OUTPUT};
+
 cat ${INPUT} >> ${OUTPUT};
-printf "\n" >> ${OUTPUT};
 
 >&2 echo "Generating the signature.";
+
 cat ${OUTPUT} \
 	| ssh-keygen -Y sign -f ${PRIVATE_KEY} -n sycamore \
 	> ${OUTPUT}.SIGN;
 
+printf "\n" >> ${OUTPUT};
+
 >&2 echo "Measure and add the signature...";
-printf "%8x\n" $(wc -c  < ${OUTPUT}.SIGN) >> ${OUTPUT};
+
+printf '0x%08x\n' $(wc -c  < ${OUTPUT}.SIGN) >> ${OUTPUT};
+
 cat ${OUTPUT}.SIGN >> ${OUTPUT};
 
 >&2 echo "Cleaning up...";# 
+
 rm ${OUTPUT}.HEAD ${OUTPUT}.SIGN;
 
 >&2 echo "Done.";# 

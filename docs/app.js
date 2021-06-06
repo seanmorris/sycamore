@@ -5934,8 +5934,82 @@ require.register("initialize.js", function(exports, require, module) {
 
 var _View = require("curvature/base/View");
 
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _iterableToArrayLimit(arr, i) { var _i = arr && (typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]); if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e2) { throw _e2; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e3) { didErr = true; err = _e3; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+fetch('feeds.list').then(function (response) {
+  return response.text();
+}).then(function (feedList) {
+  var feeds = feedList.split(/\n/);
+
+  var _iterator = _createForOfIteratorHelper(feeds),
+      _step;
+
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var feed = _step.value;
+
+      if (!feed) {
+        continue;
+      }
+
+      fetch(feed).then(function (response) {
+        return response.text();
+      }).then(function (feed) {
+        var messageLines = feed.split(/\n/);
+
+        var _iterator2 = _createForOfIteratorHelper(messageLines),
+            _step2;
+
+        try {
+          for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+            var messageLine = _step2.value;
+
+            if (!messageLine) {
+              continue;
+            }
+
+            var _messageLine$split = messageLine.split(/\s/),
+                _messageLine$split2 = _slicedToArray(_messageLine$split, 2),
+                messageTime = _messageLine$split2[0],
+                messageUrl = _messageLine$split2[1];
+
+            fetch('/messages/' + messageUrl + '.smsg').then(function (response) {
+              return response.text();
+            }).then(function (messageBody) {
+              var slug = messageBody.substring(0, 3);
+              var headerLen = messageBody.substring(4, 12);
+              console.log(headerLen);
+              var headerLenBytes = Uint8Array.from(headerLen);
+              console.log(slug, headerLen, headerLenBytes);
+            });
+          }
+        } catch (err) {
+          _iterator2.e(err);
+        } finally {
+          _iterator2.f();
+        }
+      });
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+});
 document.addEventListener('DOMContentLoaded', function () {
-  var view = _View.View.from('<b>test</b>');
+  var view = _View.View.from("<ul>\n\t\t\t<li cv-each = \"posts:post\">\n\t\t\t\t<a href = \"/messages/[[post.name]]\">[[post.name]]</a>\n\t\t\t</li>\n\t\t</ul>");
 
   view.render(document.body);
 });

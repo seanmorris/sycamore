@@ -1,20 +1,20 @@
 🍁
-     128
+0x00000139
 {
 	"authority": "https://sycamore.seanmorr.is"
 	, "name":    "article2.md"
 	, "author":  "Sean Morris <contact@seanmorr.is>"
-	, "issued":  1622938030
+	, "issued":  1622950438
 	, "request": "post" 
 	, "respond": null
+	, "topic:":  []
 	, "type":    "text/plain; charset=us-ascii"
 	, "key"   :  "https://sycamore.seanmorr.is/sycamore.pub"
 }
-      1a
+0x00000019
 This is something new...
 
-
-     4bf
+0x000004bf
 -----BEGIN SSH SIGNATURE-----
 U1NIU0lHAAAAAQAAAZcAAAAHc3NoLXJzYQAAAAMBAAEAAAGBAObimz5f1JaW+UhuPWmyDB
 QR1Jdt3X7nIkroZyIvXesnddQXTk9vxlnBs4lrFSLDoOlSIw/BYK+GUBXf1miTu8/d+c0C
@@ -24,13 +24,13 @@ Od0clYMYZIE3nJocC3LbwwT7FDNEZOkN9ep1rcRAvBKYKARB5u6eNxh6E0Y8Nz3KuS1Pfa
 XhM74j1B623QV7Gt8K1uUi913qBCMbC2KCQpdQNjln/sT0JApPvgnFAeCFZkLyoUq+CbUu
 eGYCGVA0QElR6zfsgWN/aCInwdNCZjonQHBr5DdCRlYt8Tm5L3FS58kFNZ8qK465mxyFg+
 xegoQEHbcO6vG2a6o66N8tAO/nMwb/rjt8nnyUQN4fsQRVqUR5Zzf6bO2Ro1bHe/A3rTHp
-PQAAAAhzeWNhbW9yZQAAAAAAAAAGc2hhNTEyAAABlAAAAAxyc2Etc2hhMi01MTIAAAGAXn
-y7BfvCojPEAxtXk52rUJRt77gqLpeTF4/3n1W0tUKFP0IQmr5TSJcbfeSbZqalRz2tut7C
-w182jiVyRn6b8/6a2huUc4KrDuXd382GvUMyD/lweZEwG3Rnmak70GKrQB9ovA6BawmQwl
-HPKVH4WYi9KFLBdpVJL1i3VJJYFt++HiZVXkIqkr+RNQlyscOEB888xQSx5E9iAQZDtZby
-/EzyD1oZBT/F0nWSOwYZ58LvRf46ogQU7PLjD8iJpRHEt5O+aimOg4E852iwPuHCvFX+C+
-U91AxG8EFys5n/r0abtOEueIayH3lrO7PLZNO1epTshA24/CUbEIAr3tExysGGLjWgMXK6
-vsKEHyyFo3qhwTuX3DDBlcgVzNdMTXanrFJASjhdtcylcTopkWKWR1qFihl/NKMl4k3R9w
-J6piM0urlO8kimA3WF+ySG1NB4vgxZOwNwZwy0DCKrtK9IMU0PhDI40Ep8psOcTUTkGgcJ
-5LCeLq4AaGB2FYp4C+qK
+PQAAAAhzeWNhbW9yZQAAAAAAAAAGc2hhNTEyAAABlAAAAAxyc2Etc2hhMi01MTIAAAGAL5
+Zsjh0rc+7p56waphRh+f4c9ICQ2gutEjiXTl+q+OUoNwrKBhGlNP93x+c0kGFAnixSlbQm
+6VtOInYqVn4g04G+5S7M7Ao25wTrwNYk21Apvn9aUhdjj2gxA5N/pf++Uvk4/p/lHNfRW8
+SI6nSIVIBtMqt+O9m3yectQvP0Dxr6LkxwCYdrlgwX2DM84Jqb38gZe16b+wxLkCh33Cpx
+Z31GgjqD9oaGJu0uze+C297MuTHNUCL9kWcv1C5UHU8JixaxK60pq9TCBmhx38/rtAACuz
+9dvIjoJIs00Qum0chvh1/l0E1FPgyAlg7hCdg95xBxOu27UjBDl6VI/XjJcskBHW0z1/dC
+cgDKCQwdRIKWZskTZTvMc0dI4N/vAcE5Zjnkwk7FpS3OkU9xfvMA6zSMGPNatJnCJgtkyt
+Dayt07aamFpJOoA81tdeVxs1DDpb4rBA4nSdhv/qSi7S5L24+PTIpsjk0eRpeKbkAGyOpb
+vzfCsIf2zpG8pDokBUoe
 -----END SSH SIGNATURE-----

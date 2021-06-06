@@ -1,19 +1,21 @@
 🍁
-     119
+0x0000013c
 {
 	"authority": "https://sycamore.seanmorr.is"
 	, "name":    "hello-world.md"
 	, "author":  "Sean Morris <contact@seanmorr.is>"
-	, "issued":  1622935980
+	, "issued":  1622950438
 	, "request": "post" 
 	, "respond": null
-	, "type":    "text/plain"
+	, "topic:":  []
+	, "type":    "text/plain; charset=us-ascii"
 	, "key"   :  "https://sycamore.seanmorr.is/sycamore.pub"
 }
-       d
+0x0000000e
 Hello World!
 
-     4bf
+
+0x000004bf
 -----BEGIN SSH SIGNATURE-----
 U1NIU0lHAAAAAQAAAZcAAAAHc3NoLXJzYQAAAAMBAAEAAAGBAObimz5f1JaW+UhuPWmyDB
 QR1Jdt3X7nIkroZyIvXesnddQXTk9vxlnBs4lrFSLDoOlSIw/BYK+GUBXf1miTu8/d+c0C
@@ -23,13 +25,13 @@ Od0clYMYZIE3nJocC3LbwwT7FDNEZOkN9ep1rcRAvBKYKARB5u6eNxh6E0Y8Nz3KuS1Pfa
 XhM74j1B623QV7Gt8K1uUi913qBCMbC2KCQpdQNjln/sT0JApPvgnFAeCFZkLyoUq+CbUu
 eGYCGVA0QElR6zfsgWN/aCInwdNCZjonQHBr5DdCRlYt8Tm5L3FS58kFNZ8qK465mxyFg+
 xegoQEHbcO6vG2a6o66N8tAO/nMwb/rjt8nnyUQN4fsQRVqUR5Zzf6bO2Ro1bHe/A3rTHp
-PQAAAAhzeWNhbW9yZQAAAAAAAAAGc2hhNTEyAAABlAAAAAxyc2Etc2hhMi01MTIAAAGAxU
-bbDzobzfOyK9cMTjs0f8LteIOWuVxgUo/90WtRIpg9L+OhA7qABBQcUHglthz0YSNOTzwZ
-D9DNogtIH3yvA98qjc0qvh2E3WNFGGly8uqb/BGCsEcY0aMEYoYgVDZos6U4TvHQsNhtr3
-zIc1WyrZyoU+3pcd3royd/uz9GyOD/Q6OS795JgyMAEriZ6dhAvHy/bvo5PpfAWKw2RKkV
-R5tRdGBonPzVLSowInrds1xloWRD3LdD8B7aV2tKSRoVQc1tvm4gp1k15tuNw4DApXW9Rb
-iG7DvyHX/ZYw43JnY/UZXLdaVc49NEFyCMW+SGn9MYKX8HiP8kKBnWIvRYGVesOskS4VHT
-I920wo04WMfx+8cmmyrcFZTRW2xjYdext7WVYMVr3bL3v3AopJUuioLyAIQjhH2TU53BG3
-ihEHF0fsko+wqj3+us3QP6UV95+oB9uphMEEdMActYx8VQMfLYKYbS1/VA5+i62fcCxYNB
-7T3QvcDgBgI7PHDgCvWE
+PQAAAAhzeWNhbW9yZQAAAAAAAAAGc2hhNTEyAAABlAAAAAxyc2Etc2hhMi01MTIAAAGAOL
+qcwdEK7Ubb3Oa8ua9TQw7Bq/fdz///wKzbkzYiFiYH50dgTWrAFc6icZ0W/LAZUip1xlJV
+QIQe2gooeD2s5jU91cYZELAaTDpSHFUJBHQBIF8rSBtHzB0180mO4oGzcDkoy2Go4eLXfp
+QKfV1WL0o3Vjh2GSullwgNEYm33RBWG6HXmb+9tFt301KU8cUlGcOd4E60Xf/L+aDsumfN
+ROZvStD4tm/aTlJC8qnp0NQooOaUr8T82qivGqREcIplJwgENNEIXodtznlIsQy8+ZuFft
+u13//+URJZ4oMtgk+l6BlNRy3MwNAm4i4qrVpCLl+lGNlbGzZyRXwMTFW14hGGgulNvqRC
+O3Cv4wMsJ0RJob/+UolhxPwx0yNTYu36L730/iclAjvN5N4vZkNCB+JCJF1woeL7Py47XH
+EsEbAsitQWtecbFIFyqD7HLMkL5X9mS9E+2NEybXjBhvnyhdfazVZiSB+nAV4QDKT9jm9l
+bWN3nIcoVzO3J3sVRi9o
 -----END SSH SIGNATURE-----
