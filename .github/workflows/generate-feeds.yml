@@ -41,11 +41,11 @@ jobs:
       - name: Generate feeds.
         run:  bash bin/index-feeds.sh
 
-      - name: Add feed index file.
-        run: '[[ -f ./docs/feeds.list ]] &&  git add ./docs/feeds.list'
+      # - name: Add feed index file.
+      #   run: '[[ -f ./docs/feeds.list ]] &&  git add ./docs/feeds.list'
 
-      - name: Add peer index file.
-        run: '[[ -f ./docs/peers.list ]] &&  git add ./docs/peers.list'
+      # - name: Add peer index file.
+      #   run: '[[ -f ./docs/peers.list ]] &&  git add ./docs/peers.list'
 
       - name: Add any feeds files.
         run:  git add ./docs/feeds/**
