@@ -38,6 +38,7 @@ jobs:
         env:
           CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          XDG_CONFIG_HOME: /github/workspace
           WRANGLER_HOME: /github/workspace
           SCRIPT_NAME: github-proxy
 
@@ -47,4 +48,5 @@ jobs:
         env:
           TF_VAR_CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           TF_VAR_CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          XDG_CONFIG_HOME: /github/workspace
           WRANGLER_HOME: /github/workspace
