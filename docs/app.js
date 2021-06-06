@@ -5958,7 +5958,7 @@ var gitHubListener = function gitHubListener(event) {
   }
 };
 
-var view = _View.View.from("<section class = \"header\">\n\t\n\t\t<div class = \"branding\">\n\t\t\t<h1><a cv-link = \"/\">Sean Morris</a></h1>\n\t\t\t<small>A <a cv-link = \"https://github.com/seanmorris/sycamore\">Sycamore</a> Profile</small>\n\t\t</div>\n\t\t\n\t\t<div class = \"menu\">\n\t\t\t<a cv-on = \"click:githubLoginClicked\">\n\t\t\t\t<img class = \"icon\" src = \"/user.svg\">\n\t\t\t</a>\n\t\t</div>\n\t\n\t</section>\n\n\t<form class = \"post\">\n\t\t<input type = \"text\" placeholder = \"Write a post!\" />\n\t\t<input type = \"submit\" />\n\t</form>\n\n\t<ul class = \"messages\" cv-each = \"posts:post\">\n\n\t\t<li data-type = \"[[post.type]]\">\n\t\t\t\n\t\t\t<section class = \"author\">\n\t\t\t\t<div class = \"avatar\"></div>\n\t\t\t\t<span class = \"author\">[[post.author]]</span>\n\t\t\t</section>\n\t\t\t\n\t\t\t<section>\n\t\t\t\t<small title = \"[[post.timecode]]\">[[post.time]]</small>\n\t\t\t</section>\n\t\t\t\n\t\t\t<section>\n\t\t\t\t<span class = \"body\">[[post.slug]]</span>\n\t\t\t</section>\n\t\t\t\n\t\t\t<section>\n\t\t\t\t<a cv-link = \"/messages/[[post.name]]\">\n\t\t\t\t\t[[post.name]]\n\t\t\t\t\t<img class = \"icon\" src = \"/go.svg\" />\n\t\t\t\t</a>\n\t\t\t</section>\n\t\t\n\t\t</li>\n\t</ul>");
+var view = _View.View.from("\n\t<section class = \"app theme-[[profileTheme]]\">\n\n\t\t<section class = \"header\">\n\t\t\n\t\t\t<div class = \"branding\">\n\t\t\t\t<h1><a cv-link = \"/\">[[profileName]]</a></h1>\n\t\t\t\t<small>A <a cv-link = \"https://github.com/seanmorris/sycamore\">Sycamore</a> [[profileType]]</small>\n\t\t\t</div>\n\t\t\t\n\t\t\t<div class = \"menu\">\n\t\t\t\t<a cv-on = \"click:githubLoginClicked\">\n\t\t\t\t\t<img class = \"icon\" src = \"/user.svg\">\n\t\t\t\t</a>\n\t\t\t</div>\n\t\t\n\t\t</section>\n\n\t\t<form class = \"post\">\n\t\t\t<input type = \"text\" placeholder = \"Write a post!\" />\n\t\t\t<input type = \"submit\" />\n\t\t</form>\n\n\t\t<ul class = \"messages\" cv-each = \"posts:post\">\n\n\t\t\t<li data-type = \"[[post.type]]\">\n\t\t\t\t\n\t\t\t\t<section class = \"author\">\n\t\t\t\t\t<div class = \"avatar\"></div>\n\t\t\t\t\t<span class = \"author\">[[post.author]]</span>\n\t\t\t\t</section>\n\t\t\t\t\n\t\t\t\t<section>\n\t\t\t\t\t<small title = \"[[post.timecode]]\">[[post.time]]</small>\n\t\t\t\t</section>\n\t\t\t\t\n\t\t\t\t<section>\n\t\t\t\t\t<span class = \"body\">[[post.slug]]</span>\n\t\t\t\t</section>\n\t\t\t\t\n\t\t\t\t<section>\n\t\t\t\t\t<a cv-link = \"/messages/[[post.name]]\">\n\t\t\t\t\t\t[[post.name]]\n\t\t\t\t\t\t<img class = \"icon\" src = \"/go.svg\" />\n\t\t\t\t\t</a>\n\t\t\t\t</section>\n\t\t\t\n\t\t\t</li>\n\t\t</ul>\n\n\t</section>\n\t");
 
 view.githubLoginClicked = function (event) {
   var redirectUri = 'https://sycamore.seanmorr.is/github-auth/accept';
@@ -5979,6 +5979,12 @@ view.githubLoginClicked = function (event) {
   globalThis.loginChecker = setInterval(100, checkLogin);
 };
 
+view.args.profileTheme = 'red-dots';
+view.args.profileName = 'Sycamore Syndicator';
+view.args.profileType = 'Hub';
+view.args.profileTheme = 'maple-tree';
+view.args.profileName = 'Sean Morris';
+view.args.profileType = 'Profile';
 view.args.posts = [];
 fetch('/feeds.list').then(function (response) {
   return response.text();

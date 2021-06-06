@@ -6,17 +6,22 @@ h1 {
 	padding: 0;
 }
 
-
-body {
-	background-image: url(/backdrop.jpg);
-	background-size: cover;
+section.app {
 	background-attachment: fixed;
+	background-size: cover;	
+}
+
+section.app.theme-red-dots {
+	background-image: url(/abstract-gathering.jpg);
+}
+
+section.app.theme-maple-tree {
+	background-image: url(/maple-backdrop.jpg);	
 }
 
 section.header {
 	background-color: black;
 	color: white;
-	margin-bottom: 1em;
 	display: flex;
 	flex-direction: row;
 	align-items: center;
@@ -53,3 +58,19 @@ img.icon {
 	display: inline-block;
 }
 
+form.post,
+ul.messages li {
+	backdrop-filter: blur(10px);
+}
+
+input[type="submit"],
+input[type="button"] {
+	background-color: black;
+	color: white;
+	font-weight: bold;
+	text-transform: uppercase;
+	font-size: 0.65em;
+	font-weight: bold;
+	border: 0;
+	border-radius: 5px;
+}

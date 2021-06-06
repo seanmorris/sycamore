@@ -15,52 +15,58 @@ const gitHubListener = event => {
 };
 
 const view = View.from(
-	`<section class = "header">
-	
-		<div class = "branding">
-			<h1><a cv-link = "/">Sean Morris</a></h1>
-			<small>A <a cv-link = "https://github.com/seanmorris/sycamore">Sycamore</a> Profile</small>
-		</div>
+	`
+	<section class = "app theme-[[profileTheme]]">
+
+		<section class = "header">
 		
-		<div class = "menu">
-			<a cv-on = "click:githubLoginClicked">
-				<img class = "icon" src = "/user.svg">
-			</a>
-		</div>
-	
-	</section>
-
-	<form class = "post">
-		<input type = "text" placeholder = "Write a post!" />
-		<input type = "submit" />
-	</form>
-
-	<ul class = "messages" cv-each = "posts:post">
-
-		<li data-type = "[[post.type]]">
+			<div class = "branding">
+				<h1><a cv-link = "/">[[profileName]]</a></h1>
+				<small>A <a cv-link = "https://github.com/seanmorris/sycamore">Sycamore</a> [[profileType]]</small>
+			</div>
 			
-			<section class = "author">
-				<div class = "avatar"></div>
-				<span class = "author">[[post.author]]</span>
-			</section>
-			
-			<section>
-				<small title = "[[post.timecode]]">[[post.time]]</small>
-			</section>
-			
-			<section>
-				<span class = "body">[[post.slug]]</span>
-			</section>
-			
-			<section>
-				<a cv-link = "/messages/[[post.name]]">
-					[[post.name]]
-					<img class = "icon" src = "/go.svg" />
+			<div class = "menu">
+				<a cv-on = "click:githubLoginClicked">
+					<img class = "icon" src = "/user.svg">
 				</a>
-			</section>
+			</div>
 		
-		</li>
-	</ul>`
+		</section>
+
+		<form class = "post">
+			<input type = "text" placeholder = "Write a post!" />
+			<input type = "submit" />
+		</form>
+
+		<ul class = "messages" cv-each = "posts:post">
+
+			<li data-type = "[[post.type]]">
+				
+				<section class = "author">
+					<div class = "avatar"></div>
+					<span class = "author">[[post.author]]</span>
+				</section>
+				
+				<section>
+					<small title = "[[post.timecode]]">[[post.time]]</small>
+				</section>
+				
+				<section>
+					<span class = "body">[[post.slug]]</span>
+				</section>
+				
+				<section>
+					<a cv-link = "/messages/[[post.name]]">
+						[[post.name]]
+						<img class = "icon" src = "/go.svg" />
+					</a>
+				</section>
+			
+			</li>
+		</ul>
+
+	</section>
+	`
 );
 
 view.githubLoginClicked = event => {
@@ -93,6 +99,14 @@ view.githubLoginClicked = event => {
 
 	globalThis.loginChecker = setInterval(100, checkLogin);
 }
+
+view.args.profileTheme = 'red-dots';
+view.args.profileName  = 'Sycamore Syndicator';
+view.args.profileType  = 'Hub';
+
+view.args.profileTheme = 'maple-tree';
+view.args.profileName  = 'Sean Morris';
+view.args.profileType  = 'Profile';
 
 view.args.posts = [];
 
