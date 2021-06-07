@@ -1,0 +1,43 @@
+<section cv-if = "!mid">
+
+	<form class = "post" cv-on = "submit:createPost(event)">
+		<input type = "text" placeholder = "Write a post!" cv-bind = "inputPost" />
+		<input type = "submit" />
+	</form>
+
+</section>
+
+[[mid]]
+
+<ul class = "messages" cv-each = "posts:post">
+
+	<li data-type = "[[post.type]]">
+		
+		<section class = "author">
+			<div class = "avatar"></div>
+			<span class = "author">
+				<a href = "user/[[post.uid]]">[[post.author]]</a>
+			</span>
+		</section>
+		
+		<section>
+			<small title = "[[post.timecode]]">[[post.id]] [[post.time]]</small>
+		</section>
+		
+		<section>
+			<span class = "body">[[post.slug]]</span>
+		</section>
+		
+		<section class = "reaction-bar">
+			Reply - Enjoy
+		</section>
+		
+		<section>
+			<a cv-link = "/messages/[[post.name]]">
+				[[post.name]]
+				<img class = "icon" src = "/go.svg" />
+			</a>
+		</section>
+	
+	</li>
+</ul>

@@ -16,8 +16,7 @@ ul.messages li {
 }
 
 form.post,
-ul.messages li,
-section.header {
+ul.messages li {
 	margin-bottom: 2em;	
 }
 
@@ -27,8 +26,13 @@ ul.messages li {
 	box-shadow: 0em 0.5em 0.5em rgba(0,0,0,0.45);
 }
 
+section.body {
+	position: relative;
+}
+
 form.post {
 	display: flex;
+	margin-top: 2em;
 }
 
 form.post input[type="text"] {
@@ -52,7 +56,7 @@ ul.messages li section:last-child {
 	font-size: 0.75rem;
 }
 
-ul.messages li div.avatar {
+div.avatar {
 	display: inline-block;
 	border: 1px solid black;
 	border-radius: 50%;
@@ -62,20 +66,20 @@ ul.messages li div.avatar {
 	height: 1.75em;
 }
 
-ul.messages li section.author {
+section.author {
 	display: flex;
 	flex-direction: row;
 	align-content: flex-end;
 	font-weight: bold;
 }
 
-ul.messages li span.author {
+span.author {
 	line-height: 2rem;
 	margin-left: 0.5rem;
 }
 
 
-ul.messages li span.author,
+span.author,
 ul.messages li span.body {
 	font-family: sans;
 }
@@ -88,4 +92,8 @@ ul.messages li span.body {
 ul.messages li pre {
 	margin-bottom: 0;
 	margin-top: 0;
+}
+
+.reaction-bar {
+	font-size: 0.75em;
 }

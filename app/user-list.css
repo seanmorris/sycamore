@@ -1,0 +1,8 @@
+ul.user-list {
+	list-style: none;
+	padding:  0;
+}
+
+ul.user-list li:not(:last-child) {
+	margin-bottom: 1em;
+}

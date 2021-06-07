@@ -1,0 +1,38 @@
+.about-me {
+	box-sizing: border-box;
+	padding: 1em;
+	border:  1px solid rgba(0,0,0,0.5);
+	background-color: rgba(255,255,255,0.89);
+
+	width: 30em;
+	margin: auto;
+	margin-top: 2em;
+	margin-bottom: 2em;
+}
+
+.about-me .author span.author {
+	margin-left: 1em;
+	margin-top:  0.5em;
+}
+
+.about-me .author span.author a.user-name {
+	font-size: 1.75rem;
+	text-decoration: none;
+	color: black;
+}
+
+.about-me .author .avatar {
+	flex-shrink: 0;
+	width: 5rem;
+	height: 5rem;
+}
+
+.about-me .author .avatar {}
+
+.block-text {
+	word-wrap: break-word;
+	font-size: 0.75rem;
+	font-family: monospace;
+	border:  1px solid rgba(0,0,0,0.5);
+	padding:  0.5rem;
+}

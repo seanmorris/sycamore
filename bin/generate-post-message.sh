@@ -15,8 +15,15 @@ INPUT=$1;
 BASE_INPUT=${1#messages/};
 OUTPUT=docs/messages/${BASE_INPUT}.smsg;
 PUBLIC_KEY_URL=${STATIC_HOSTNAME}/sycamore.pub;
+USER_ID=$(shasum -a256 .ssh/sycamore.pub  | cut -d " " -f 1);
 TYPE=$(file -ib --mime-type ${INPUT});
 NOW=$(date +%s);
+
+[[ -z $2 ]] && {
+	REQUEST=post
+} || {
+	REQUEST=$2
+}
 
 test -f $INPUT || exit 1;
 
@@ -29,8 +36,9 @@ cat << EOF > ${OUTPUT}.HEAD
 	"authority": "${STATIC_HOSTNAME}"
 	, "name":    "${BASE_INPUT}"
 	, "author":  "${AUTHOR}"
+	, "uid":     "${USER_ID}"
 	, "issued":  ${NOW}
-	, "request": "post" 
+	, "request": "${REQUEST}" 
 	, "respond": null
 	, "topic:":  []
 	, "type":    "${TYPE}"

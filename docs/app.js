@@ -6984,7 +6984,7 @@ var Model = /*#__PURE__*/function () {
     value: function from(skeleton) {
       var _this2 = this;
 
-      var keyProps = this.prototype.keyProps;
+      var keyProps = this.prototype.constructor.keyProps;
       var cacheKey = keyProps.map(function (prop) {
         return skeleton[prop];
       }).join('::');
@@ -7047,7 +7047,7 @@ Object.defineProperty(Model, 'Changed', {
 });
   })();
 });
-require.register("initialize.js", function(exports, require, module) {
+require.register("FeedView.js", function(exports, require, module) {
 "use strict";
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -7055,15 +7055,15 @@ function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "functi
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.MessageDatabase = void 0;
+exports.FeedView = void 0;
 
-var _Bindable = require("curvature/base/Bindable");
+var _View2 = require("curvature/base/View");
 
-var _View = require("curvature/base/View");
+var _Model = require("curvature/model/Model");
 
-var _Model2 = require("curvature/model/Model");
+var _Database = require("curvature/model/Database");
 
-var _Database2 = require("curvature/model/Database");
+var _MessageModel = require("./MessageModel");
 
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
 
@@ -7079,7 +7079,219 @@ function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o =
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var FeedView = /*#__PURE__*/function (_View) {
+  _inherits(FeedView, _View);
+
+  var _super = _createSuper(FeedView);
+
+  function FeedView(args) {
+    var _this;
+
+    _classCallCheck(this, FeedView);
+
+    _this = _super.call(this, args);
+
+    _defineProperty(_assertThisInitialized(_this), "template", require('feed.html'));
+
+    _defineProperty(_assertThisInitialized(_this), "postSet", new Set());
+
+    _this.args.posts = [];
+    return _this;
+  }
+
+  _createClass(FeedView, [{
+    key: "loadFeeds",
+    value: function loadFeeds() {
+      var _this2 = this;
+
+      var feedUrl = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '/feeds.list';
+      fetch(feedUrl).then(function (response) {
+        return response.text();
+      }).then(function (feedList) {
+        var feeds = feedList.split(/\n/);
+
+        var _iterator = _createForOfIteratorHelper(feeds),
+            _step;
+
+        try {
+          for (_iterator.s(); !(_step = _iterator.n()).done;) {
+            var feed = _step.value;
+
+            if (!feed) {
+              continue;
+            }
+
+            _this2.loadFeed(feed);
+          }
+        } catch (err) {
+          _iterator.e(err);
+        } finally {
+          _iterator.f();
+        }
+      });
+    }
+  }, {
+    key: "loadFeed",
+    value: function loadFeed(feed) {
+      var _this3 = this;
+
+      fetch('/' + feed).then(function (response) {
+        return response.text();
+      }).then(function (feed) {
+        var messageLines = feed.split(/\n/);
+
+        var _iterator2 = _createForOfIteratorHelper(messageLines),
+            _step2;
+
+        try {
+          for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+            var messageLine = _step2.value;
+
+            if (!messageLine) {
+              continue;
+            }
+
+            var _messageLine$split = messageLine.split(/\s/),
+                _messageLine$split2 = _slicedToArray(_messageLine$split, 2),
+                messageTime = _messageLine$split2[0],
+                messageUrl = _messageLine$split2[1];
+
+            _this3.loadMessage(messageUrl);
+          }
+        } catch (err) {
+          _iterator2.e(err);
+        } finally {
+          _iterator2.f();
+        }
+      });
+    }
+  }, {
+    key: "loadMessage",
+    value: function loadMessage(messageUrl) {
+      var _this4 = this;
+
+      fetch('/messages/' + messageUrl + '.smsg').then(function (response) {
+        return response.text();
+      }).then(function (messageBody) {
+        return _this4.displayPost(messageBody);
+      });
+    }
+  }, {
+    key: "displayPost",
+    value: function displayPost(messageBytes) {
+      var _this5 = this;
+
+      var message = _MessageModel.MessageModel.fromString(messageBytes).then(function (message) {
+        if (!message || !message.url || _this5.postSet.has(message.url)) {
+          return;
+        }
+
+        var viewArgs = {
+          name: message.name,
+          uid: message.header.uid,
+          type: message.header.type,
+          time: new Date(message.header.issued * 1000),
+          timecode: message.header.issued,
+          author: message.header.author,
+          slug: message.header.type.substr(0, 10) === 'text/plain' ? message.body.substr(0, 140) : null
+        };
+
+        _this5.args.posts.push(viewArgs);
+
+        _this5.postSet.add(message.url);
+      });
+    }
+  }, {
+    key: "createPost",
+    value: function createPost(event) {
+      var _this6 = this;
+
+      event.preventDefault();
+
+      if (!this.args.inputPost) {
+        return;
+      }
+
+      var raw = view.args.inputPost;
+      var branch = 'master';
+      var message = 'Sycamore self-edit.';
+      var content = btoa(unescape(encodeURIComponent(raw)));
+      var sha = '';
+      var postChange = {
+        message: message,
+        content: content,
+        sha: sha
+      };
+      var headers = {
+        'Content-Type': 'application/json',
+        Accept: 'application/vnd.github.v3.json'
+      };
+      var gitHubToken = JSON.parse(sessionStorage.getItem('sycamore::github-token'));
+      var method = 'PUT';
+      var body = JSON.stringify(postChange);
+      var mode = 'cors';
+      var credentials = 'omit';
+
+      if (gitHubToken && gitHubToken.access_token) {
+        headers.Authorization = "token ".concat(gitHubToken.access_token);
+      } else {
+        return;
+      }
+
+      var filepath = 'messages';
+      var filename = "post-".concat(Date.now(), ".md");
+      return fetch('https://api.github.com/repos/seanmorris/sycamore' + '/contents/' + filepath + (filepath ? '/' : '') + filename, {
+        method: method,
+        headers: headers,
+        body: body,
+        mode: mode
+      }).then(function (response) {
+        return response.json();
+      }).then(function (response) {
+        _this6.args.inputPost = '';
+      });
+    }
+  }]);
+
+  return FeedView;
+}(_View2.View);
+
+exports.FeedView = FeedView;
+});
+
+;require.register("MessageDatabase.js", function(exports, require, module) {
+"use strict";
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.MessageDatabase = void 0;
+
+var _Database2 = require("curvature/model/Database");
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -7116,14 +7328,20 @@ var MessageDatabase = /*#__PURE__*/function (_Database) {
     key: "_version_1",
     value: function _version_1(database) {
       var messageStore = this.createObjectStore('messages', {
-        keyPath: 'id',
-        autoIncrement: true
-      });
-      messageStore.createIndex('url', ['header.authority', 'header.name'], {
+        keyPath: 'url',
         unique: true
+      });
+      messageStore.createIndex('authority', 'header.authority', {
+        unique: false
       });
       messageStore.createIndex('issued', 'header.issued', {
         unique: false
+      });
+      messageStore.createIndex('name', 'header.name', {
+        unique: false
+      });
+      messageStore.createIndex('url', 'url', {
+        unique: true
       });
     }
   }]);
@@ -7132,11 +7350,48 @@ var MessageDatabase = /*#__PURE__*/function (_Database) {
 }(_Database2.Database);
 
 exports.MessageDatabase = MessageDatabase;
+});
+
+;require.register("MessageModel.js", function(exports, require, module) {
+"use strict";
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.MessageModel = void 0;
+
+var _Model2 = require("curvature/model/Model");
+
+var _MessageDatabase = require("./MessageDatabase");
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 var MessageModel = /*#__PURE__*/function (_Model) {
   _inherits(MessageModel, _Model);
 
-  var _super2 = _createSuper(MessageModel);
+  var _super = _createSuper(MessageModel);
 
   function MessageModel() {
     var _this;
@@ -7147,13 +7402,15 @@ var MessageModel = /*#__PURE__*/function (_Model) {
       args[_key] = arguments[_key];
     }
 
-    _this = _super2.call.apply(_super2, [this].concat(args));
+    _this = _super.call.apply(_super, [this].concat(args));
 
     _defineProperty(_assertThisInitialized(_this), "signature", void 0);
 
     _defineProperty(_assertThisInitialized(_this), "header", void 0);
 
     _defineProperty(_assertThisInitialized(_this), "body", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "url", void 0);
 
     _defineProperty(_assertThisInitialized(_this), "id", void 0);
 
@@ -7175,11 +7432,6 @@ var MessageModel = /*#__PURE__*/function (_Model) {
     get: function get() {
       return this.header && this.header.name;
     }
-  }, {
-    key: "url",
-    get: function get() {
-      return this.authority + '/' + this.name;
-    }
   }], [{
     key: "keyProps",
     get: function get() {
@@ -7187,234 +7439,492 @@ var MessageModel = /*#__PURE__*/function (_Model) {
     }
   }, {
     key: "fromString",
-    value: function fromString(messageBody) {
-      var slug = messageBody.substring(0, 3);
-      var headerHex = messageBody.substr(3, 10);
-      var headerLen = parseInt(headerHex);
-      var header = messageBody.substr(14, headerLen);
+    value: function fromString(messageBytes) {
+      var dbCheck = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+      var slug = messageBytes.substring(0, 3);
+      var headerHex = messageBytes.substr(3, 10);
+      var headerLen = parseInt(headerHex, 16);
+      var header = messageBytes.substr(14, headerLen);
       var bodyStart = headerLen + 25;
-      var bodyHex = messageBody.substr(headerLen + 14, 10);
-      var bodyLen = parseInt(bodyHex);
-      var body = messageBody.substr(bodyStart, bodyLen);
+      var bodyHex = messageBytes.substr(headerLen + 14, 10);
+      var bodyLen = parseInt(bodyHex, 16);
+      var body = messageBytes.substr(bodyStart, bodyLen);
       var signatureStart = bodyStart + bodyLen + 1;
-      var signatureHex = messageBody.substr(signatureStart, 10);
-      var signatureLen = parseInt(signatureHex);
-      var signature = messageBody.substr(bodyStart + bodyLen + 12); // if(this.header && this.header.issued && this.header.issued > header.issued)
-      // {
-      // 	return false;
-      // }
-
+      var signatureHex = messageBytes.substr(signatureStart, 10);
+      var signatureLen = parseInt(signatureHex, 16);
+      var signature = messageBytes.substr(bodyStart + bodyLen + 12);
       var headerObject = JSON.parse(header);
       var url = headerObject.authority + '/' + headerObject.name;
       var skeleton = {
         "class": 'message',
         header: headerObject,
         body: body,
-        signature: signature
+        signature: signature,
+        url: headerObject.authority + '/' + headerObject.name
       };
       var message = new MessageModel();
-      message.consume(skeleton); // console.log(message);
+      message.consume(skeleton);
 
-      return message;
+      if (!dbCheck) {
+        return Promise.resolve(message);
+      }
+
+      return _MessageDatabase.MessageDatabase.open('messages', 1).then(function (database) {
+        var query = {
+          store: 'messages',
+          index: 'url',
+          range: message.url,
+          type: MessageModel
+        };
+        return database.select(query).one().then(function (result) {
+          var record = result.record;
+
+          if (!record) {
+            var _message = MessageModel.fromString(messageBytes, false).then(function (message) {
+              database.insert('messages', message);
+            });
+          } else if (message.issued > record.issued) {
+            record.consume(message);
+            database.update('messages', record);
+          }
+
+          return record;
+        });
+      });
     }
   }]);
 
   return MessageModel;
 }(_Model2.Model);
 
+exports.MessageModel = MessageModel;
 ;
-var posts = new Set();
+});
 
-var loadPosts = function loadPosts(messageBytes) {
-  var message = MessageModel.fromString(messageBytes);
+require.register("RootView.js", function(exports, require, module) {
+"use strict";
 
-  if (!message.url || posts.has(message.url)) {
-    return;
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.RootView = void 0;
+
+var _View2 = require("curvature/base/View");
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var RootView = /*#__PURE__*/function (_View) {
+  _inherits(RootView, _View);
+
+  var _super = _createSuper(RootView);
+
+  function RootView() {
+    var _this;
+
+    _classCallCheck(this, RootView);
+
+    _this = _super.call(this);
+
+    _defineProperty(_assertThisInitialized(_this), "template", require('./root.html'));
+
+    _this.args.profileName = 'Sycamore';
+    _this.args.profileTheme = 1 ? 'red-dots' : 'maple-tree';
+    return _this;
   }
 
-  var viewArgs = {
-    name: message.name,
-    type: message.header.type,
-    time: new Date(message.header.issued * 1000),
-    timecode: message.header.issued,
-    author: message.header.author,
-    slug: message.header.type.substr(0, 10) === 'text/plain' ? message.body.substr(0, 140) : null
-  };
-  view.args.posts.push(viewArgs);
-  posts.add(message.url);
-  var query = {
-    store: 'messages',
-    index: 'url',
-    range: message.url,
-    type: MessageModel
-  };
-  MessageDatabase.open('messages', 1).then(function (database) {
-    database.select(query).one().then(function (result) {
-      var record = result.record;
+  _createClass(RootView, [{
+    key: "githubLoginClicked",
+    value: function githubLoginClicked(event) {
+      var redirectUri = 'https://sycamore.seanmorr.is/github-auth/accept';
+      var clientId = '4c8f4209d3c4ad741d2c';
+      var state = Math.random().toString(36);
+      var loginWindow = window.open('https://github.com/login/oauth/authorize' + '?redirect_uri=' + redirectUri + '&client_id=' + clientId + '&scope=public_repo' + '&state=' + state, "github-login", "left=100,top=100,width=750,height=500,resizable=0,scrollbars=0,location=0,menubar=0,toolbar=0,status=0");
 
-      if (!record) {
-        var _message = MessageModel.fromString(messageBytes);
+      var gitHubListener = function gitHubListener(event) {
+        var token = JSON.parse(event.data);
 
-        database.insert('messages', _message);
-      } else {
-        record.consume(message);
-        database.update('messages', record);
-      }
-    })["catch"](function (error) {
-      return console.log(error);
-    });
-  });
-};
-
-var view = _View.View.from("\n\t<section class = \"app theme-[[profileTheme]]\">\n\n\t\t<section class = \"header\">\n\t\t\n\t\t\t<div class = \"branding\">\n\t\t\t\t<h1><a cv-link = \"/\">[[profileName]]</a></h1>\n\t\t\t\t<small>A <a cv-link = \"https://github.com/seanmorris/sycamore\">Sycamore</a> [[profileType]]</small>\n\t\t\t</div>\n\t\t\t\n\t\t\t<div class = \"menu\">\n\t\t\t\t<a cv-on = \"click:githubLoginClicked(event)\">\n\t\t\t\t\t<img class = \"icon\" src = \"/user.svg\">\n\t\t\t\t</a>\n\t\t\t</div>\n\t\t\n\t\t</section>\n\n\t\t<section class = \"body\">\n\t\t\t<form class = \"post\" cv-on = \"submit:createPost(event)\">\n\t\t\t\t<input type = \"text\" placeholder = \"Write a post!\" cv-bind = \"inputPost\" />\n\t\t\t\t<input type = \"submit\" />\n\t\t\t</form>\n\n\t\t\t<ul class = \"messages\" cv-each = \"posts:post\">\n\n\t\t\t\t<li data-type = \"[[post.type]]\">\n\t\t\t\t\t\n\t\t\t\t\t<section class = \"author\">\n\t\t\t\t\t\t<div class = \"avatar\"></div>\n\t\t\t\t\t\t<span class = \"author\">[[post.author]]</span>\n\t\t\t\t\t</section>\n\t\t\t\t\t\n\t\t\t\t\t<section>\n\t\t\t\t\t\t<small title = \"[[post.timecode]]\">[[post.time]]</small>\n\t\t\t\t\t</section>\n\t\t\t\t\t\n\t\t\t\t\t<section>\n\t\t\t\t\t\t<span class = \"body\">[[post.slug]]</span>\n\t\t\t\t\t</section>\n\t\t\t\t\t\n\t\t\t\t\t<section>\n\t\t\t\t\t\t<a cv-link = \"/messages/[[post.name]]\">\n\t\t\t\t\t\t\t[[post.name]]\n\t\t\t\t\t\t\t<img class = \"icon\" src = \"/go.svg\" />\n\t\t\t\t\t\t</a>\n\t\t\t\t\t</section>\n\t\t\t\t\n\t\t\t\t</li>\n\t\t\t</ul>\n\t\t</section>\n\n\t\t<section class = \"footer\">\n\t\t\t&copy; 2021 Sean Morris, All rights reserved.\n\t\t</section>\n\n\t</section>\n\t");
-
-view.githubLoginClicked = function (event) {
-  var redirectUri = 'https://sycamore.seanmorr.is/github-auth/accept';
-  var clientId = '4c8f4209d3c4ad741d2c';
-  var state = Math.random().toString(36);
-  var loginWindow = window.open('https://github.com/login/oauth/authorize' + '?redirect_uri=' + redirectUri + '&client_id=' + clientId + '&scope=public_repo' + '&state=' + state, "github-login", "left=100,top=100,width=750,height=500,resizable=0,scrollbars=0,location=0,menubar=0,toolbar=0,status=0");
-
-  var gitHubListener = function gitHubListener(event) {
-    var token = JSON.parse(event.data);
-
-    if (token && token.access_token) {
-      sessionStorage.setItem('sycamore::github-token', JSON.stringify(token));
-    } else {
-      sessionStorage.setItem('sycamore::github-token', '{}');
-    }
-
-    loginWindow.close();
-  };
-
-  var checkLogin = function checkLogin() {
-    if (!loginWindow.closed) {
-      return;
-    }
-
-    clearInterval(globalThis.loginChecker);
-    accept();
-  };
-
-  globalThis.loginChecker = setInterval(100, checkLogin);
-  window.addEventListener('message', gitHubListener, false);
-};
-
-view.createPost = function (event) {
-  event.preventDefault();
-
-  if (!view.args.inputPost) {
-    return;
-  }
-
-  var raw = view.args.inputPost;
-  var branch = 'master';
-  var message = 'Sycamore self-edit.';
-  var content = btoa(unescape(encodeURIComponent(raw)));
-  var sha = '';
-  var postChange = {
-    message: message,
-    content: content,
-    sha: sha
-  };
-  var headers = {
-    'Content-Type': 'application/json',
-    Accept: 'application/vnd.github.v3.json'
-  };
-  var gitHubToken = JSON.parse(sessionStorage.getItem('sycamore::github-token'));
-  var method = 'PUT';
-  var body = JSON.stringify(postChange);
-  var mode = 'cors';
-  var credentials = 'omit';
-
-  if (gitHubToken && gitHubToken.access_token) {
-    headers.Authorization = "token ".concat(gitHubToken.access_token);
-  } else {
-    return;
-  }
-
-  var filepath = 'messages';
-  var filename = "post-".concat(Date.now(), ".md");
-  return fetch('https://api.github.com/repos/seanmorris/sycamore' + '/contents/' + filepath + (filepath ? '/' : '') + filename, {
-    method: method,
-    headers: headers,
-    body: body,
-    mode: mode
-  }).then(function (response) {
-    return response.json();
-  }).then(function (response) {
-    view.args.inputPost = '';
-  });
-};
-
-view.args.profileTheme = 'red-dots';
-view.args.profileName = 'Sycamore Syndicator';
-view.args.profileType = 'Hub';
-view.args.profileTheme = 'maple-tree';
-view.args.profileName = 'Sean Morris';
-view.args.profileType = 'Profile';
-view.args.posts = [];
-fetch('/feeds.list').then(function (response) {
-  return response.text();
-}).then(function (feedList) {
-  var feeds = feedList.split(/\n/);
-
-  var _iterator = _createForOfIteratorHelper(feeds),
-      _step;
-
-  try {
-    for (_iterator.s(); !(_step = _iterator.n()).done;) {
-      var feed = _step.value;
-
-      if (!feed) {
-        continue;
-      }
-
-      fetch('/' + feed).then(function (response) {
-        return response.text();
-      }).then(function (feed) {
-        var messageLines = feed.split(/\n/);
-
-        var _iterator2 = _createForOfIteratorHelper(messageLines),
-            _step2;
-
-        try {
-          for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-            var messageLine = _step2.value;
-
-            if (!messageLine) {
-              continue;
-            }
-
-            var _messageLine$split = messageLine.split(/\s/),
-                _messageLine$split2 = _slicedToArray(_messageLine$split, 2),
-                messageTime = _messageLine$split2[0],
-                messageUrl = _messageLine$split2[1];
-
-            fetch('/messages/' + messageUrl + '.smsg').then(function (response) {
-              return response.text();
-            }).then(function (messageBody) {
-              loadPosts(messageBody);
-            });
-          }
-        } catch (err) {
-          _iterator2.e(err);
-        } finally {
-          _iterator2.f();
+        if (token && token.access_token) {
+          sessionStorage.setItem('sycamore::github-token', JSON.stringify(token));
+        } else {
+          sessionStorage.setItem('sycamore::github-token', '{}');
         }
+
+        loginWindow.close();
+      };
+
+      var checkLogin = function checkLogin() {
+        if (!loginWindow.closed) {
+          return;
+        }
+
+        clearInterval(globalThis.loginChecker);
+        accept();
+      };
+
+      globalThis.loginChecker = setInterval(100, checkLogin);
+      window.addEventListener('message', gitHubListener, false);
+    }
+  }]);
+
+  return RootView;
+}(_View2.View);
+
+exports.RootView = RootView;
+});
+
+;require.register("UserDatabase.js", function(exports, require, module) {
+"use strict";
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.UserDatabase = void 0;
+
+var _Database2 = require("curvature/model/Database");
+
+var _UserModel = require("./UserModel");
+
+function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+var UserDatabase = /*#__PURE__*/function (_Database) {
+  _inherits(UserDatabase, _Database);
+
+  var _super = _createSuper(UserDatabase);
+
+  function UserDatabase() {
+    _classCallCheck(this, UserDatabase);
+
+    return _super.apply(this, arguments);
+  }
+
+  _createClass(UserDatabase, [{
+    key: "_version_1",
+    value: function _version_1(database) {
+      var messageStore = this.createObjectStore('users', {
+        keyPath: 'uid',
+        unique: true
+      });
+      messageStore.createIndex('name', 'name', {
+        unique: false
+      });
+      messageStore.createIndex('url', 'url', {
+        unique: false
+      });
+      messageStore.createIndex('uid', 'uid', {
+        unique: true
       });
     }
-  } catch (err) {
-    _iterator.e(err);
-  } finally {
-    _iterator.f();
-  }
+  }], [{
+    key: "syncUsers",
+    value: function syncUsers() {
+      fetch('/syndicating.json').then(function (response) {
+        return response.json();
+      }).then(function (profiles) {
+        return UserDatabase.open('users', 1).then(function (database) {
+          var _iterator = _createForOfIteratorHelper(profiles),
+              _step;
+
+          try {
+            var _loop = function _loop() {
+              var profile = _step.value;
+              var query = {
+                store: 'users',
+                index: 'uid',
+                range: profile.uid,
+                type: _UserModel.UserModel
+              };
+              database.select(query).one().then(function (result) {
+                if (result.record) {
+                  result.record.consume(profile);
+                  database.update('users', result.record);
+                } else {
+                  var user = _UserModel.UserModel.from(profile);
+
+                  database.insert('users', user);
+                }
+              });
+            };
+
+            for (_iterator.s(); !(_step = _iterator.n()).done;) {
+              _loop();
+            }
+          } catch (err) {
+            _iterator.e(err);
+          } finally {
+            _iterator.f();
+          }
+        });
+      });
+    }
+  }]);
+
+  return UserDatabase;
+}(_Database2.Database);
+
+exports.UserDatabase = UserDatabase;
 });
-document.addEventListener('DOMContentLoaded', function () {
-  view.render(document.body);
+
+;require.register("UserModel.js", function(exports, require, module) {
+"use strict";
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.UserModel = void 0;
+
+var _Model2 = require("curvature/model/Model");
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var UserModel = /*#__PURE__*/function (_Model) {
+  _inherits(UserModel, _Model);
+
+  var _super = _createSuper(UserModel);
+
+  function UserModel() {
+    var _this;
+
+    _classCallCheck(this, UserModel);
+
+    for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    _this = _super.call.apply(_super, [this].concat(args));
+
+    _defineProperty(_assertThisInitialized(_this), "name", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "about", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "issued", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "img", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "uid", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "url", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "hub", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "key", void 0);
+
+    return _this;
+  }
+
+  _createClass(UserModel, null, [{
+    key: "keyProps",
+    get: function get() {
+      return ['uid', 'class'];
+    }
+  }]);
+
+  return UserModel;
+}(_Model2.Model);
+
+exports.UserModel = UserModel;
+;
+});
+
+require.register("UserView.js", function(exports, require, module) {
+"use strict";
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.UserView = void 0;
+
+var _View2 = require("curvature/base/View");
+
+var _UserModel = require("./UserModel");
+
+var _UserDatabase = require("./UserDatabase");
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var UserView = /*#__PURE__*/function (_View) {
+  _inherits(UserView, _View);
+
+  var _super = _createSuper(UserView);
+
+  function UserView(args) {
+    var _this;
+
+    _classCallCheck(this, UserView);
+
+    _this = _super.call(this, args);
+
+    _defineProperty(_assertThisInitialized(_this), "template", require('./user.html'));
+
+    _UserDatabase.UserDatabase.open('users', 1).then(function (database) {
+      var query = {
+        store: 'users',
+        index: 'uid',
+        range: args.uid,
+        type: _UserModel.UserModel
+      };
+      database.select(query).one().then(function (_ref) {
+        var result = _ref.result,
+            record = _ref.record;
+        Object.assign(_this.args, record);
+      });
+    });
+
+    return _this;
+  }
+
+  return UserView;
+}(_View2.View);
+
+exports.UserView = UserView;
+});
+
+;require.register("feed.html", function(exports, require, module) {
+module.exports = "<section cv-if = \"!mid\">\n\n\t<form class = \"post\" cv-on = \"submit:createPost(event)\">\n\t\t<input type = \"text\" placeholder = \"Write a post!\" cv-bind = \"inputPost\" />\n\t\t<input type = \"submit\" />\n\t</form>\n\n</section>\n\n[[mid]]\n\n<ul class = \"messages\" cv-each = \"posts:post\">\n\n\t<li data-type = \"[[post.type]]\">\n\t\t\n\t\t<section class = \"author\">\n\t\t\t<div class = \"avatar\"></div>\n\t\t\t<span class = \"author\">\n\t\t\t\t<a href = \"user/[[post.uid]]\">[[post.author]]</a>\n\t\t\t</span>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<small title = \"[[post.timecode]]\">[[post.id]] [[post.time]]</small>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<span class = \"body\">[[post.slug]]</span>\n\t\t</section>\n\t\t\n\t\t<section class = \"reaction-bar\">\n\t\t\tReply - Enjoy\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<a cv-link = \"/messages/[[post.name]]\">\n\t\t\t\t[[post.name]]\n\t\t\t\t<img class = \"icon\" src = \"/go.svg\" />\n\t\t\t</a>\n\t\t</section>\n\t\n\t</li>\n</ul>"
+});
+
+;require.register("initialize.js", function(exports, require, module) {
+"use strict";
+
+var _Router = require("curvature/base/Router");
+
+var _RootView = require("./RootView");
+
+var _FeedView = require("./FeedView");
+
+var _UserView = require("./UserView");
+
+var _UserModel = require("./UserModel");
+
+var _UserDatabase = require("./UserDatabase");
+
+var view = new _RootView.RootView();
+
+_UserDatabase.UserDatabase.syncUsers();
+
+var routes = {
+  '': function _() {
+    var feed = new _FeedView.FeedView();
+    feed.loadFeeds();
+    return feed;
+  },
+  'user/%uid': function userUid(args) {
+    return new _UserView.UserView(args);
+  },
+  'messages/%mid': function messagesMid(args) {
+    return new _FeedView.FeedView(args);
+  }
+};
+
+_Router.Router.listen(view, routes);
+
+view.listen(document, 'DOMContentLoaded', function (event) {
+  return view.render(document.body);
+}, {
+  once: true
 });
 });
 
-require.register("___globals___", function(exports, require, module) {
+require.register("root.html", function(exports, require, module) {
+module.exports = "<section class = \"app theme-[[profileTheme]]\">\n\n\t<section class = \"header\">\n\t\n\t\t<div class = \"branding\">\n\t\t\t<h1><a cv-link = \"/\">[[profileName]]</a></h1>\n\t\t\t<small>Fly you fools.</small>\n\t\t</div>\n\t\t\n\t\t<div class = \"menu\">\n\t\t\t<a cv-on = \"click:githubLoginClicked(event)\">\n\t\t\t\t<img class = \"icon\" src = \"/user.svg\">\n\t\t\t</a>\n\t\t</div>\n\t</section>\n\n\t<section class = \"body\">\n\t\t\n\t\t[[content]]\n\t\n\t</section>\n\n\t<section class = \"footer\">\n\t\t&copy; 2021 Sean Morris, All rights reserved.\n\t</section>\n\n</section>"
+});
+
+;require.register("user-list.html", function(exports, require, module) {
+module.exports = "<section class = \"settings\">\n\t<h2>Syndicating</h2>\n\t<ul class = \"user-list\" cv-each = \"syndicating:profile\">\n\t\t<li>\n\t\t\t<section class = \"author\">\n\t\t\t\t<div class = \"avatar\" style = \"background-image: url([[profile.img]])\"></div>\n\t\t\t\t<span class = \"author\">\n\t\t\t\t\t<a href = \"/user/[[profile.uid]]\">[[profile.name]]</a>\n\t\t\t\t</span>\n\t\t\t</section>\n\t\t\t<!-- <input value = \"sycamore.seanmorr.is\"> -->\n\t\t</li>\n\t</ul>\n</section>"
+});
+
+;require.register("user.html", function(exports, require, module) {
+module.exports = "<section class = \"about-me\">\n\n\t<section class = \"author\">\n\n\t\t<div class = \"avatar\" style = \"background-image: url([[img]])\"></div>\n\t\t\n\t\t<span class = \"author\">\n\t\t\t<a class = \"user-name\" href = \"/user/[[uid]]\">[[name]]</a>\n\t\t\t<a class = \"user-link\" href = \"/user/[[uid]]\">[[url]]</a>\n\t\t</span>\n\n\n\t</section>\n\n\t<p>about:</p>\n\t<section class = \"block-text\">[[about]]</span>\n\t</section>\n\n\t<p>contact card issued on:</p>\n\t<section class = \"block-text\">[[issued]]</span>\n\t</section>\n\n\t<p>hub server:</p>\n\t<section class = \"block-text\">[[hub]]</span>\n\t</section>\n\n\t<p>uid:</p>\n\t<section class = \"block-text\">[[uid]]</span>\n\t</section>\n\n\t<p>public key:</p>\n\t<section class = \"block-text\">[[key]]</span>\n\t</section>\n\n\t<p>signature:</p>\n\t<section class = \"block-text\">[[key]]</span>\n\t</section>\n\n</section>"
+});
+
+;require.register("___globals___", function(exports, require, module) {
   
 });})();require('___globals___');
 

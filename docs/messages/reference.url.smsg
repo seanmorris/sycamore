@@ -1,10 +1,11 @@
 🍁
-0x0000013b
+0x00000176
 {
 	"authority": "https://sycamore.seanmorr.is"
 	, "name":    "reference.url"
-	, "author":  "Sean Morris <contact@seanmorr.is>"
-	, "issued":  1622950438
+	, "author":  "Sean Morris"
+	, "uid":     "de245f02e28e08e09820234ae429ceb4bc16bbf442cc6b94ef7c46bdefc5dbe9"
+	, "issued":  1623030094
 	, "request": "post" 
 	, "respond": null
 	, "topic:":  []
@@ -24,13 +25,13 @@ Od0clYMYZIE3nJocC3LbwwT7FDNEZOkN9ep1rcRAvBKYKARB5u6eNxh6E0Y8Nz3KuS1Pfa
 XhM74j1B623QV7Gt8K1uUi913qBCMbC2KCQpdQNjln/sT0JApPvgnFAeCFZkLyoUq+CbUu
 eGYCGVA0QElR6zfsgWN/aCInwdNCZjonQHBr5DdCRlYt8Tm5L3FS58kFNZ8qK465mxyFg+
 xegoQEHbcO6vG2a6o66N8tAO/nMwb/rjt8nnyUQN4fsQRVqUR5Zzf6bO2Ro1bHe/A3rTHp
-PQAAAAhzeWNhbW9yZQAAAAAAAAAGc2hhNTEyAAABlAAAAAxyc2Etc2hhMi01MTIAAAGArs
-SV2trHNVneyozJoLiC4LrOlbzm+ud1YIzkfc9g6uqgRAZhbERsd6Ump42D9N0vs8+EHxUk
-4abNzVy5YH/jInUaBNUKVrUf9TTrAQKuFzoaZ2tlyLy0vq0DUsRRefS6sgZlh/tGTjtl0f
-lp+FpC4qWvaII2hoZrzUMYiwMtKw9kylgBJ9uaJ+CFalplBfdrYZ84SgO/zoSAbFoPYyfj
-D8eR/OvYci+30J6Ud74ZhzEN4RNlPl5bPvuEAE3Vuk9jKHnsCFrJqd/UTyqhCS+ipxTmfM
-DsojGgNu2R1uPhWu/HTjV+D2M95YZOXfjeyRm60JiC0QUYSjqMcpqxt6ScIgQbwkOj//sf
-5LCy0NXxOa774P+waBpi0xJRUG29UyKDnSHRldgOxj63BDLzk3jD593Vho+nHJeoNzN38E
-7AfWTkfJO6azp9YuafqhzVAr2NpxCtsLV6NLSRfcbPthNLTZOb495oIgIZuAu8Gx6xQWXk
-qS2y8dBOCvM9IGg0hDf5
+PQAAAAhzeWNhbW9yZQAAAAAAAAAGc2hhNTEyAAABlAAAAAxyc2Etc2hhMi01MTIAAAGAPI
+XyVwYZXdGlQjJSLyUzja1bvBsUe7340rIVqzavSHuHdiOqauqcRziDMcHs3q7eukAkBU2F
+UCLmx0eXH5s6Xa4zzaDwzrRGaON8harZnz8WfF8pxMh/k+3WJxH9L8x7YeEgFSEc1bkKym
+4DKHim4XE6PsY6QCYdyd8oK93eH8qakNotFvtpjJNs5gb3E2gqNFIdIs6F0qpOsBN8J+8n
+Ly9oYMl6fFbuR1ahwZOZDTlHpZwDsjkfSX+FNwhaZsAd1DQX7jUDaqTl3z0O5uL4aZh8iN
+3OHliK0AG1i6lbPp1+b32uKPOYYx6kIHHBzBQpB5A7WQu1T4Jt/hOvHwO8G986UmLMXWfI
+cgH4xYP/e0424nawm5xaBPG9O6tbY2kxps4YmzirS6WfXTbm33QQxuBGMSlzpIqXVxDttx
+LVhcibxO/cmMFyTmxQ3jDBosuz0zxtF4VburIjflx6higX6VtLoOTyo9DK+7HKegGxsOZr
+3ts0tuU8eU5BJUYr/Pc8
 -----END SSH SIGNATURE-----
