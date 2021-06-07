@@ -16,7 +16,7 @@
 		<section class = "author">
 			<div class = "avatar"></div>
 			<span class = "author">
-				<a href = "user/[[post.uid]]">[[post.author]]</a>
+				<a cv-link = "user/[[post.uid]]">[[post.author]]</a>
 			</span>
 		</section>
 		
@@ -29,7 +29,10 @@
 		</section>
 		
 		<section class = "reaction-bar">
-			Reply - Enjoy
+			<a cv-link>Reply</a>
+			 - <a cv-link>Like</a>
+			 - <a cv-link>Pay</a>
+			 - <a cv-link cv-on = "click:follow(event, post)">Follow</a>
 		</section>
 		
 		<section>

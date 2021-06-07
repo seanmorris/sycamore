@@ -4609,7 +4609,7 @@ var View = /*#__PURE__*/function (_Mixin$with) {
           var argRefs = argList.map(function (arg) {
             var match;
 
-            if (parseInt(arg) == arg) {
+            if (Number(arg) == arg) {
               return arg;
             } else if (arg === 'event' || arg === '$event') {
               return event;
@@ -5684,7 +5684,9 @@ var ViewList = /*#__PURE__*/function () {
         delete _this.views[kk];
 
         for (var i in _this.views) {
-          if (typeof i === 'string') {
+          console.log(i);
+
+          if (isNaN(i)) {
             _this.views[i].args[_this.keyProperty] = i.substr(1);
             continue;
           }
@@ -6484,7 +6486,7 @@ var Database = /*#__PURE__*/function (_Mixin$with) {
           return;
         }
 
-        var request = store["delete"](Number(record[PrimaryKey].description));
+        var request = store["delete"](record[PrimaryKey].description);
         record[PrimaryKey] = undefined;
         record[Database.AfterDelete] && record[Database.AfterDelete](detail);
 
@@ -7061,9 +7063,11 @@ var _View2 = require("curvature/base/View");
 
 var _Model = require("curvature/model/Model");
 
-var _Database = require("curvature/model/Database");
-
 var _MessageModel = require("./MessageModel");
+
+var _UserModel = require("./UserModel");
+
+var _UserDatabase = require("./UserDatabase");
 
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
 
@@ -7215,6 +7219,7 @@ var FeedView = /*#__PURE__*/function (_View) {
           time: new Date(message.header.issued * 1000),
           timecode: message.header.issued,
           author: message.header.author,
+          authority: message.header.authority,
           slug: message.header.type.substr(0, 10) === 'text/plain' ? message.body.substr(0, 140) : null
         };
 
@@ -7235,9 +7240,9 @@ var FeedView = /*#__PURE__*/function (_View) {
       }
 
       var raw = view.args.inputPost;
-      var branch = 'master';
       var message = 'Sycamore self-edit.';
       var content = btoa(unescape(encodeURIComponent(raw)));
+      var branch = 'master';
       var sha = '';
       var postChange = {
         message: message,
@@ -7270,7 +7275,59 @@ var FeedView = /*#__PURE__*/function (_View) {
       }).then(function (response) {
         return response.json();
       }).then(function (response) {
-        _this6.args.inputPost = '';
+        return _this6.args.inputPost = '';
+      });
+    }
+  }, {
+    key: "follow",
+    value: function follow(event, post) {
+      var openDb = _UserDatabase.UserDatabase.open('users', 1);
+
+      var fetchCard = fetch(post.authority + '/contact-card.json').then(function (r) {
+        return r.json();
+      });
+      Promise.all([openDb, fetchCard]).then(function (_ref) {
+        var _ref2 = _slicedToArray(_ref, 2),
+            database = _ref2[0],
+            contactCard = _ref2[1];
+
+        var query = {
+          store: 'users',
+          index: 'uid',
+          range: post.uid,
+          type: _UserModel.UserModel
+        };
+        return database.select(query).one().then(function (result) {
+          var record = result.record;
+
+          if (!record) {
+            var user = _UserModel.UserModel.from(contactCard);
+
+            database.insert('users', user);
+          } else {
+            record.consume(contactCard);
+            database.update('users', record);
+          }
+
+          var query = {
+            store: 'users',
+            index: 'uid',
+            type: _UserModel.UserModel
+          };
+          return database.select(query).each(function (record) {
+            console.log(record);
+            return record;
+          });
+        }).then(function (profiles) {
+          console.log(profiles); // github.get('docs/syndicating.json').then(original => {
+          // 	const profiles = this.args.profiles.filter(x=>x);
+          // 	return github.put({
+          // 		location: 'docs/syndicating.json'
+          // 		, data:   JSON.stringify(profiles, null, 4)
+          // 		, sha:    original.sha
+          // 	});
+          // });
+        });
       });
     }
   }]);
@@ -7279,6 +7336,109 @@ var FeedView = /*#__PURE__*/function (_View) {
 }(_View2.View);
 
 exports.FeedView = FeedView;
+});
+
+;require.register("Github.js", function(exports, require, module) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Github = void 0;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var Github = /*#__PURE__*/function () {
+  function Github(repository) {
+    _classCallCheck(this, Github);
+
+    this.repository = repository;
+  }
+
+  _createClass(Github, [{
+    key: "getToken",
+    value: function getToken() {
+      var stored = sessionStorage.getItem('sycamore::github-token');
+
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    }
+  }, {
+    key: "setToken",
+    value: function setToken(token) {
+      return sessionStorage.setItem('sycamore::github-token', token);
+    }
+  }, {
+    key: "get",
+    value: function get(location) {
+      var method = 'GET';
+      var mode = 'cors';
+      var headers = {
+        'Content-Type': 'application/json',
+        Accept: 'application/vnd.github.v3.json'
+      };
+      return fetch('https://api.github.com/repos/' + this.repository + '/contents/' + location, {
+        method: method,
+        headers: headers,
+        mode: mode
+      }).then(function (response) {
+        return response.json();
+      });
+    }
+  }, {
+    key: "put",
+    value: function put(_ref) {
+      var data = _ref.data,
+          location = _ref.location,
+          _ref$message = _ref.message,
+          message = _ref$message === void 0 ? 'Sycamore self-edit.' : _ref$message,
+          _ref$branch = _ref.branch,
+          branch = _ref$branch === void 0 ? 'master' : _ref$branch,
+          _ref$sha = _ref.sha,
+          sha = _ref$sha === void 0 ? '' : _ref$sha;
+      var content = btoa(unescape(encodeURIComponent(data)));
+      var postChange = {
+        message: message,
+        content: content,
+        sha: sha
+      };
+      var headers = {
+        'Content-Type': 'application/json',
+        Accept: 'application/vnd.github.v3.json'
+      };
+      var gitHubToken = this.getToken();
+      var method = 'PUT';
+      var body = JSON.stringify(postChange);
+      var mode = 'cors';
+      var credentials = 'omit';
+      console.log(gitHubToken);
+
+      if (gitHubToken && gitHubToken.access_token) {
+        headers.Authorization = "token ".concat(gitHubToken.access_token);
+      } else {
+        return;
+      }
+
+      return fetch('https://api.github.com/repos/' + this.repository + '/contents/' + location, {
+        method: method,
+        headers: headers,
+        body: body,
+        mode: mode
+      }).then(function (response) {
+        return response.json();
+      });
+    }
+  }]);
+
+  return Github;
+}();
+
+exports.Github = Github;
 });
 
 ;require.register("MessageDatabase.js", function(exports, require, module) {
@@ -7513,6 +7673,8 @@ exports.RootView = void 0;
 
 var _View2 = require("curvature/base/View");
 
+var _UserList = require("./UserList");
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -7540,12 +7702,12 @@ var RootView = /*#__PURE__*/function (_View) {
 
   var _super = _createSuper(RootView);
 
-  function RootView() {
+  function RootView(args) {
     var _this;
 
     _classCallCheck(this, RootView);
 
-    _this = _super.call(this);
+    _this = _super.call(this, args);
 
     _defineProperty(_assertThisInitialized(_this), "template", require('./root.html'));
 
@@ -7585,6 +7747,11 @@ var RootView = /*#__PURE__*/function (_View) {
 
       globalThis.loginChecker = setInterval(100, checkLogin);
       window.addEventListener('message', gitHubListener, false);
+    }
+  }, {
+    key: "openSettings",
+    value: function openSettings() {
+      this.args.settings = this.args.settings ? null : new _UserList.UserList();
     }
   }]);
 
@@ -7710,6 +7877,116 @@ var UserDatabase = /*#__PURE__*/function (_Database) {
 }(_Database2.Database);
 
 exports.UserDatabase = UserDatabase;
+});
+
+;require.register("UserList.js", function(exports, require, module) {
+"use strict";
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.UserList = void 0;
+
+var _View2 = require("curvature/base/View");
+
+var _UserModel = require("./UserModel");
+
+var _UserDatabase = require("./UserDatabase");
+
+var _Github = require("./Github");
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var UserList = /*#__PURE__*/function (_View) {
+  _inherits(UserList, _View);
+
+  var _super = _createSuper(UserList);
+
+  function UserList(args) {
+    var _this;
+
+    _classCallCheck(this, UserList);
+
+    _this = _super.call(this, args);
+
+    _defineProperty(_assertThisInitialized(_this), "template", require('./user-list.html'));
+
+    _this.args.profiles = [];
+
+    _UserDatabase.UserDatabase.open('users', 1).then(function (database) {
+      var query = {
+        store: 'users',
+        index: 'uid',
+        type: _UserModel.UserModel
+      };
+      database.select(query).each(function (result) {
+        return _this.args.profiles.push(result);
+      });
+    });
+
+    return _this;
+  }
+
+  _createClass(UserList, [{
+    key: "removeMode",
+    value: function removeMode() {
+      this.args.removeMode = this.args.removeMode ? null : 'remove-mode';
+    }
+  }, {
+    key: "deleteUser",
+    value: function deleteUser(event, user, index) {
+      var _this2 = this;
+
+      if (!user) {
+        return;
+      }
+
+      _UserDatabase.UserDatabase.open('users', 1).then(function (database) {
+        return database["delete"]('users', user);
+      });
+
+      delete this.args.profiles[index];
+      var github = new _Github.Github('seanmorris/sycamore');
+      github.get('docs/syndicating.json').then(function (original) {
+        var profiles = _this2.args.profiles.filter(function (x) {
+          return x;
+        });
+
+        return github.put({
+          location: 'docs/syndicating.json',
+          data: JSON.stringify(profiles, null, 4),
+          sha: original.sha
+        });
+      });
+    }
+  }]);
+
+  return UserList;
+}(_View2.View);
+
+exports.UserList = UserList;
 });
 
 ;require.register("UserModel.js", function(exports, require, module) {
@@ -7867,7 +8144,7 @@ exports.UserView = UserView;
 });
 
 ;require.register("feed.html", function(exports, require, module) {
-module.exports = "<section cv-if = \"!mid\">\n\n\t<form class = \"post\" cv-on = \"submit:createPost(event)\">\n\t\t<input type = \"text\" placeholder = \"Write a post!\" cv-bind = \"inputPost\" />\n\t\t<input type = \"submit\" />\n\t</form>\n\n</section>\n\n[[mid]]\n\n<ul class = \"messages\" cv-each = \"posts:post\">\n\n\t<li data-type = \"[[post.type]]\">\n\t\t\n\t\t<section class = \"author\">\n\t\t\t<div class = \"avatar\"></div>\n\t\t\t<span class = \"author\">\n\t\t\t\t<a href = \"user/[[post.uid]]\">[[post.author]]</a>\n\t\t\t</span>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<small title = \"[[post.timecode]]\">[[post.id]] [[post.time]]</small>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<span class = \"body\">[[post.slug]]</span>\n\t\t</section>\n\t\t\n\t\t<section class = \"reaction-bar\">\n\t\t\tReply - Enjoy\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<a cv-link = \"/messages/[[post.name]]\">\n\t\t\t\t[[post.name]]\n\t\t\t\t<img class = \"icon\" src = \"/go.svg\" />\n\t\t\t</a>\n\t\t</section>\n\t\n\t</li>\n</ul>"
+module.exports = "<section cv-if = \"!mid\">\n\n\t<form class = \"post\" cv-on = \"submit:createPost(event)\">\n\t\t<input type = \"text\" placeholder = \"Write a post!\" cv-bind = \"inputPost\" />\n\t\t<input type = \"submit\" />\n\t</form>\n\n</section>\n\n[[mid]]\n\n<ul class = \"messages\" cv-each = \"posts:post\">\n\n\t<li data-type = \"[[post.type]]\">\n\t\t\n\t\t<section class = \"author\">\n\t\t\t<div class = \"avatar\"></div>\n\t\t\t<span class = \"author\">\n\t\t\t\t<a cv-link = \"user/[[post.uid]]\">[[post.author]]</a>\n\t\t\t</span>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<small title = \"[[post.timecode]]\">[[post.id]] [[post.time]]</small>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<span class = \"body\">[[post.slug]]</span>\n\t\t</section>\n\t\t\n\t\t<section class = \"reaction-bar\">\n\t\t\t<a cv-link>Reply</a>\n\t\t\t - <a cv-link>Like</a>\n\t\t\t - <a cv-link>Pay</a>\n\t\t\t - <a cv-link cv-on = \"click:follow(event, post)\">Follow</a>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<a cv-link = \"/messages/[[post.name]]\">\n\t\t\t\t[[post.name]]\n\t\t\t\t<img class = \"icon\" src = \"/go.svg\" />\n\t\t\t</a>\n\t\t</section>\n\t\n\t</li>\n</ul>"
 });
 
 ;require.register("initialize.js", function(exports, require, module) {
@@ -7913,15 +8190,15 @@ view.listen(document, 'DOMContentLoaded', function (event) {
 });
 
 require.register("root.html", function(exports, require, module) {
-module.exports = "<section class = \"app theme-[[profileTheme]]\">\n\n\t<section class = \"header\">\n\t\n\t\t<div class = \"branding\">\n\t\t\t<h1><a cv-link = \"/\">[[profileName]]</a></h1>\n\t\t\t<small>Fly you fools.</small>\n\t\t</div>\n\t\t\n\t\t<div class = \"menu\">\n\t\t\t<a cv-on = \"click:githubLoginClicked(event)\">\n\t\t\t\t<img class = \"icon\" src = \"/user.svg\">\n\t\t\t</a>\n\t\t</div>\n\t</section>\n\n\t<section class = \"body\">\n\t\t\n\t\t[[content]]\n\t\n\t</section>\n\n\t<section class = \"footer\">\n\t\t&copy; 2021 Sean Morris, All rights reserved.\n\t</section>\n\n</section>"
+module.exports = "<section class = \"app theme-[[profileTheme]]\">\n\n\t<section class = \"header\">\n\t\n\t\t<div class = \"branding\">\n\t\t\t<h1><a cv-link = \"/\">[[profileName]]</a></h1>\n\t\t\t<small>Fly you fools.</small>\n\t\t</div>\n\t\t\n\t\t<div class = \"menu\">\n\t\t\t<a cv-on = \"click:githubLoginClicked(event)\">\n\t\t\t\t<img class = \"icon\" src = \"/user.svg\">\n\t\t\t</a>\n\t\t\t<a cv-on = \"click:openSettings(event)\">\n\t\t\t\t<img class = \"icon\" src = \"/gear.svg\">\n\t\t\t</a>\n\t\t</div>\n\t</section>\n\n\t<section class = \"body\">\n\t\t\n\t\t[[content]]\n\n\t\t[[settings]]\n\t\n\t</section>\n\n\t<section class = \"footer\">\n\t\t&copy; 2021 Sean Morris, All rights reserved.\n\t</section>\n\n</section>"
 });
 
 ;require.register("user-list.html", function(exports, require, module) {
-module.exports = "<section class = \"settings\">\n\t<h2>Syndicating</h2>\n\t<ul class = \"user-list\" cv-each = \"syndicating:profile\">\n\t\t<li>\n\t\t\t<section class = \"author\">\n\t\t\t\t<div class = \"avatar\" style = \"background-image: url([[profile.img]])\"></div>\n\t\t\t\t<span class = \"author\">\n\t\t\t\t\t<a href = \"/user/[[profile.uid]]\">[[profile.name]]</a>\n\t\t\t\t</span>\n\t\t\t</section>\n\t\t\t<!-- <input value = \"sycamore.seanmorr.is\"> -->\n\t\t</li>\n\t</ul>\n</section>"
+module.exports = "<section class = \"settings [[removeMode]]\">\n\t<h2>Syndicating</h2>\n\t<ul class = \"user-list\" cv-each = \"profiles:profile:p\">\n\t\t<li>\n\t\t\t<section class = \"author\">\n\t\t\t\t<div class = \"avatar\" style = \"background-image: url([[profile.img]])\"></div>\n\t\t\t\t<span class = \"author\">\n\t\t\t\t\t<a cv-link = \"/user/[[profile.uid]]\">[[profile.name]]</a>\n\t\t\t\t</span>\n\t\t\t\t<img cv-on = \"click:deleteUser(event, profile, p)\" class = \"icon delete-button\" src = \"/x.svg\" />\n\t\t\t</section>\n\t\t</li>\n\t</ul>\n\t<div class = \"button-row\">\n\t\t<button class = \"add\">+</button>\n\t\t<button class = \"remove\" cv-on = \"click:removeMode\">-</button>\n\t</div>\n</section>"
 });
 
 ;require.register("user.html", function(exports, require, module) {
-module.exports = "<section class = \"about-me\">\n\n\t<section class = \"author\">\n\n\t\t<div class = \"avatar\" style = \"background-image: url([[img]])\"></div>\n\t\t\n\t\t<span class = \"author\">\n\t\t\t<a class = \"user-name\" href = \"/user/[[uid]]\">[[name]]</a>\n\t\t\t<a class = \"user-link\" href = \"/user/[[uid]]\">[[url]]</a>\n\t\t</span>\n\n\n\t</section>\n\n\t<p>about:</p>\n\t<section class = \"block-text\">[[about]]</span>\n\t</section>\n\n\t<p>contact card issued on:</p>\n\t<section class = \"block-text\">[[issued]]</span>\n\t</section>\n\n\t<p>hub server:</p>\n\t<section class = \"block-text\">[[hub]]</span>\n\t</section>\n\n\t<p>uid:</p>\n\t<section class = \"block-text\">[[uid]]</span>\n\t</section>\n\n\t<p>public key:</p>\n\t<section class = \"block-text\">[[key]]</span>\n\t</section>\n\n\t<p>signature:</p>\n\t<section class = \"block-text\">[[key]]</span>\n\t</section>\n\n</section>"
+module.exports = "<section class = \"about-me\">\n\n\t<section class = \"author\">\n\t\t<div class = \"avatar\" style = \"background-image: url([[img]])\"></div>\t\t\n\t\t<span class = \"author\">\n\t\t\t<a class = \"user-name\" cv-link = \"/user/[[uid]]\">[[name]]</a>\n\t\t\t<a class = \"user-link\" href = \"[[url]]\" target = \"_blank\">[[url]]</a>\n\t\t</span>\n\t</section>\n\n\t<p>about:</p>\n\t<section class = \"block-text\">[[about]]</span>\n\t</section>\n\n\t<p>contact card issued on:</p>\n\t<section class = \"block-text\">[[issued]]</span>\n\t</section>\n\n\t<p>hub server:</p>\n\t<section class = \"block-text\">[[hub]]</span>\n\t</section>\n\n\t<p>uid:</p>\n\t<section class = \"block-text\">[[uid]]</span>\n\t</section>\n\n\t<p>public key:</p>\n\t<section class = \"block-text\">[[key]]</span>\n\t</section>\n\n\t<p>signature:</p>\n\t<section class = \"block-text\">[[key]]</span>\n\t</section>\n\n</section>"
 });
 
 ;require.register("___globals___", function(exports, require, module) {

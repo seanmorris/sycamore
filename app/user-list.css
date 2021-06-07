@@ -3,6 +3,19 @@ ul.user-list {
 	padding:  0;
 }
 
+ul.user-list li {
+	/*padding-right: 1em;	*/
+}
+
 ul.user-list li:not(:last-child) {
 	margin-bottom: 1em;
+}
+
+ul.user-list li span.author {
+	flex-grow: 1;
+	width: 100%;
+}
+
+ul.user-list li .avatar {
+	flex-shrink: 0;	
 }

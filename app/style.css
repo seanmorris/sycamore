@@ -90,8 +90,12 @@ ul.messages li {
 	backdrop-filter: blur(10px);
 }
 
-input[type="submit"],
-input[type="button"] {
+form.post input {
+	padding: 0.25em;
+}
+
+form.post input[type="submit"],
+form.post input[type="button"] {
 	background-color: black;
 	color: white;
 	font-weight: bold;
@@ -100,4 +104,6 @@ input[type="button"] {
 	font-weight: bold;
 	border: 0;
 	border-radius: 5px;
+	padding-left: 0.5em;
+	padding-right: 0.5em;
 }

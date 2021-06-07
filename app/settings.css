@@ -5,8 +5,8 @@ section.settings {
 	background-color: white;
 	border:  black;
 
-	top: 0px;
-	right: 0px;
+	top: 2rem;
+	right: 0;
 	z-index: 1;
 
 	box-shadow: 0em 0.5em 0.5em rgba(0,0,0,0.45);
@@ -18,4 +18,40 @@ section.settings {
 
 section.settings h2 {
 	margin: 0;
+}
+
+section.settings div.button-row {
+	display: flex;
+	flex-direction: row;
+}
+
+section.settings div.button-row button {
+	width: 100%;
+	border: 0;
+	font-size: 2rem;
+	color: white;
+	background-color: #333;	
+}
+
+section.settings div.button-row button:nth-child(2n) {
+	background-color: #666;
+}
+
+section.settings button {
+	cursor: pointer;	
+}
+
+section.settings.remove-mode button.add {
+	pointer-events: none;
+	opacity: 0;
+}
+
+section.settings:not(.remove-mode) img.delete-button {
+	pointer-events: none;
+	opacity: 0;
+}
+
+section.settings img.delete-button {
+	cursor: pointer;
+	align-self: center;
 }

@@ -1,11 +1,11 @@
-set -euo pipefail;
+set -euxo pipefail;
 
 LATEST=0
 
 PEER_HOST=https://sycamore.seanmorr.is;
 PEER_LIST=config/syndicate.txt
 
-cat ${PEER_LIST} | while read PEER_URL; do {
+jq .[].url docs/syndicating.js | while read PEER_URL; do {
 	
 	PEER_HOST=${PEER_URL#https:\/\/}
 	PEER_PATH=docs/peers/@"${PEER_HOST}";

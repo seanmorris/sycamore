@@ -1,12 +1,14 @@
 import { View } from 'curvature/base/View';
 
+import { UserList } from './UserList';
+
 export class RootView extends View
 {
 	template = require('./root.html');
 
-	constructor()
+	constructor(args)
 	{
-		super();
+		super(args);
 
 		this.args.profileName  = 'Sycamore';
 		this.args.profileTheme = 1 ? 'red-dots' : 'maple-tree';
@@ -29,6 +31,7 @@ export class RootView extends View
 		);
 
 		const gitHubListener = event => {
+			
 			const token = JSON.parse(event.data);
 
 			if(token && token.access_token)
@@ -44,6 +47,7 @@ export class RootView extends View
 		};
 
 		const checkLogin = () => {
+			
 			if(!loginWindow.closed)
 			{
 				return;
@@ -57,5 +61,10 @@ export class RootView extends View
 		globalThis.loginChecker = setInterval(100, checkLogin);
 
 		window.addEventListener('message', gitHubListener, false);
+	}
+
+	openSettings()
+	{
+		this.args.settings = this.args.settings ? null : new UserList;
 	}
 }

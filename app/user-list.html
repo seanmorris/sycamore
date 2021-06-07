@@ -1,14 +1,18 @@
-<section class = "settings">
+<section class = "settings [[removeMode]]">
 	<h2>Syndicating</h2>
-	<ul class = "user-list" cv-each = "syndicating:profile">
+	<ul class = "user-list" cv-each = "profiles:profile:p">
 		<li>
 			<section class = "author">
 				<div class = "avatar" style = "background-image: url([[profile.img]])"></div>
 				<span class = "author">
-					<a href = "/user/[[profile.uid]]">[[profile.name]]</a>
+					<a cv-link = "/user/[[profile.uid]]">[[profile.name]]</a>
 				</span>
+				<img cv-on = "click:deleteUser(event, profile, p)" class = "icon delete-button" src = "/x.svg" />
 			</section>
-			<!-- <input value = "sycamore.seanmorr.is"> -->
 		</li>
 	</ul>
+	<div class = "button-row">
+		<button class = "add">+</button>
+		<button class = "remove" cv-on = "click:removeMode">-</button>
+	</div>
 </section>

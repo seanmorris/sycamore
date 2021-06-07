@@ -4,6 +4,12 @@ import { MessageDatabase } from './MessageDatabase';
 
 export class MessageModel extends Model {
 	
+	signature;
+	header;
+	body;
+	url;
+	id;
+
 	static get keyProps() { return ['url', 'class'] }
 	
 	get authority() { return this.header && this.header.authority }
@@ -64,9 +70,10 @@ export class MessageModel extends Model {
 			
 				const record = result.record;
 
-				if (!record)
+				if(!record)
 				{
-					const message = MessageModel.fromString(messageBytes, false).then(message => {
+					const message = MessageModel.fromString(messageBytes, false)
+					.then(message => {
 						database.insert('messages', message);
 					});
 					
@@ -80,13 +87,6 @@ export class MessageModel extends Model {
 
 				return record;
 			});
-		
 		});
 	}
-
-	signature;
-	header;
-	body;
-	url;
-	id;
 };
