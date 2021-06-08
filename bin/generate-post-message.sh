@@ -15,7 +15,7 @@ INPUT=$1;
 BASE_INPUT=${1#messages/};
 OUTPUT=docs/messages/${BASE_INPUT}.smsg;
 PUBLIC_KEY_URL=${STATIC_HOSTNAME}/sycamore.pub;
-USER_ID=$(shasum -a256 .ssh/sycamore.pub  | cut -d " " -f 1);
+USER_ID=$(shasum -a256 docs/sycamore.pub  | cut -d " " -f 1);
 TYPE=$(file -ib --mime-type ${INPUT});
 NOW=$(date +%s);
 
