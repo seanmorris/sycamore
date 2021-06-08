@@ -11,9 +11,10 @@ test -f .env && {
 	>&2 echo "Notice: .env file not found.";
 }
 
+INPUT=$1;
+
 [[ -f ${INPUT} ]] || exit;
 
-INPUT=$1;
 BASE_INPUT=${1#messages/};
 OUTPUT=docs/messages/${BASE_INPUT}.smsg;
 PUBLIC_KEY_URL=${STATIC_HOSTNAME}/sycamore.pub;
