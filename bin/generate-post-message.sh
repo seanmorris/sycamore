@@ -78,6 +78,11 @@ printf '0x%08x\n' $(wc -c  < ${OUTPUT}.SIGN) >> ${OUTPUT};
 
 cat ${OUTPUT}.SIGN >> ${OUTPUT};
 
+cat ${OUTPUT} | curl 'https://backend.warehouse.seanmorr.is/publish/sycamore.seanmorr.is::posts' \
+  -H 'origin: https://warehouse.seanmorr.is' \
+  -H 'content-type: undefined' \
+  -X POST --data-binary @-
+
 >&2 echo "Cleaning up...";# 
 
 rm ${OUTPUT}.HEAD ${OUTPUT}.SIGN;
