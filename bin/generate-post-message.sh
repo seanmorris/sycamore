@@ -11,6 +11,8 @@ test -f .env && {
 	>&2 echo "Notice: .env file not found.";
 }
 
+[[ -f ${INPUT} ]] || exit;
+
 INPUT=$1;
 BASE_INPUT=${1#messages/};
 OUTPUT=docs/messages/${BASE_INPUT}.smsg;
