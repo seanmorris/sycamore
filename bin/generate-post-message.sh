@@ -19,11 +19,12 @@ USER_ID=$(shasum -a256 docs/sycamore.pub  | cut -d " " -f 1);
 TYPE=$(file -ib --mime-type ${INPUT});
 NOW=$(date +%s);
 
-[[ -z $2 ]] && {
-	REQUEST=post
-} || {
-	REQUEST=$2
-}
+REQUEST=post
+
+# [[ -z $2 ]] && {
+# } || {
+# 	REQUEST=$2
+# }
 
 test -f $INPUT || exit 1;
 
