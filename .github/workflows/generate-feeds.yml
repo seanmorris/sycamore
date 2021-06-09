@@ -32,7 +32,7 @@ jobs:
         run:  bash bin/generate-post-messages.sh
         env:
           STATIC_HOSTNAME: ${{ secrets.STATIC_HOSTNAME }}
-          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY_RAW }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           AUTHOR: ${{ secrets.AUTHOR }}
 
       - name: Generate the feeds.
