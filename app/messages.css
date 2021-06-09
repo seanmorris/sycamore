@@ -17,7 +17,12 @@ ul.messages li {
 
 form.post,
 ul.messages li {
-	margin-bottom: 2em;	
+	margin-top: 2em;
+}
+
+form.post:last-child,
+ul.messages li:last-child {
+	margin-bottom: 2em;
 }
 
 form.post,

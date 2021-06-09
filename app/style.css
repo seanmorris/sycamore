@@ -7,6 +7,20 @@ h1 {
 	font-size: 1.85rem;
 }
 
+.box-trim {
+	box-sizing: border-box;
+	padding: 1em;
+	border:  1px solid rgba(0,0,0,0.5);
+	background-color: rgba(255,255,255,0.89);
+	box-shadow: 0em 0.5em 0.5em rgba(0,0,0,0.45);
+}
+
+.main-rule {
+	width: 30em;
+	margin: auto;
+	margin-top: 2em;
+}
+
 section.app {
 	background-attachment: fixed;
 	background-size: cover;	
@@ -66,9 +80,17 @@ section.header .branding {
 	padding:  1rem;
 }
 
+section.header .nav {
+	flex-grow: 1;
+	text-align: right;
+}
+
+section.header .nav a {
+	margin-left: 0.75em;
+}
+
 section.header .menu {
-	width: 100%;
-	flex:  1;
+	flex-grow: 0;
 	text-align: right;
 	padding:  1em;
 }

@@ -7,6 +7,8 @@ import { MessageModel } from './MessageModel';
 import { UserModel } from './UserModel';
 import { UserDatabase } from './UserDatabase';
 
+import { Github } from './Github';
+
 export class FeedView extends View
 {
 	template = require('feed.html');
@@ -16,7 +18,7 @@ export class FeedView extends View
 	{
 		super(args);
 
-		this.args.posts = [];
+		this.args.posts = this.args.posts || [];
 	}
 
 	loadFeeds(feedUrl = '/feeds.list')
@@ -54,51 +56,49 @@ export class FeedView extends View
 	loadMessage(messageUrl)
 	{
 		fetch('/messages/' + messageUrl + '.smsg')
-			.then(response => response.arrayBuffer())
-			.then(messageBuffer => this.displayPost(messageBuffer));
+		.then(response => response.arrayBuffer())
+		.then(buffer   => MessageModel.fromBytes(buffer))
+		.then(message  => this.displayPost(message));
 	}
 
-	displayPost(messageBytes)
+	displayPost(message)
 	{
-		const message = MessageModel.fromBytes(messageBytes).then(message => {
+		if(!message || !message.url || this.postSet.has(message.url))
+		{
+			return;
+		}
 
-			if(!message || !message.url || this.postSet.has(message.url))
-			{
-				return;
-			}
-
-			const viewArgs = Bindable.make({
-				name:        message.name
-				, uid:       message.header.uid
-				, type:      message.header.type
-				, time:      new Date( message.header.issued * 1000 )
-				, timecode:  message.header.issued
-				, author:    message.header.author
-				, authority: message.header.authority
-				, slug:      message.header.type.substr(0, 10) === 'text/plain'
-					? message.body.substr(0, 140)
-					: null
-			});
-
-			message.bindTo('verified', v => {
-				if(v === true)
-				{
-					viewArgs.verified = 'verified';
-				}
-				else if(v === false)
-				{
-					viewArgs.verified = 'verify-failed';
-				}
-				else if(v === null)
-				{
-					viewArgs.verified = 'verify-pending';
-				}
-			});
-
-			this.args.posts.push(viewArgs);
-
-			this.postSet.add(message.url);
+		const viewArgs = Bindable.make({
+			name:        message.name
+			, uid:       message.header.uid
+			, type:      message.header.type
+			, time:      new Date( message.header.issued * 1000 )
+			, timecode:  message.header.issued
+			, author:    message.header.author
+			, authority: message.header.authority
+			, slug:      message.header.type.substr(0, 10) === 'text/plain'
+				? message.body.substr(0, 140)
+				: null
 		});
+
+		message.bindTo('verified', v => {
+			if(v === true)
+			{
+				viewArgs.verified = 'verified';
+			}
+			else if(v === false)
+			{
+				viewArgs.verified = 'verify-failed';
+			}
+			else if(v === null)
+			{
+				viewArgs.verified = 'verify-pending';
+			}
+		});
+
+		this.args.posts.push(viewArgs);
+
+		this.postSet.add(message.url);
 	};
 
 	createPost(event)
@@ -110,48 +110,21 @@ export class FeedView extends View
 			return;
 		}
 
-		const raw = this.args.inputPost;
+		const filename = `messages/post-${Date.now()}.md`;
 
-		const message = 'Sycamore self-edit.';
-		const content = btoa(unescape(encodeURIComponent(raw)));
-		const branch  = 'master';
-		const sha     = '';
+		const github = new Github('seanmorris/sycamore');
 
-		const postChange = {message, content, sha};
+		const putter = github.put({
+			data:       this.args.inputPost + "\n"
+			, location: filename
+			, message:  'Sycamore self-edit.'
+			, branch:   'master'
+			, sha:      ''
+		});
 
-		const headers = {
-			'Content-Type': 'application/json'
-			, Accept:       'application/vnd.github.v3.json'
-		};
+		putter.then(() => this.args.inputPost = '');
 
-		const gitHubToken = JSON.parse(sessionStorage.getItem('sycamore::github-token'));
-		const method = 'PUT';
-		const body   = JSON.stringify(postChange);
-		const mode   = 'cors';
-
-		const credentials = 'omit';
-
-		if(gitHubToken && gitHubToken.access_token)
-		{
-			headers.Authorization = `token ${gitHubToken.access_token}`;
-		}
-		else
-		{
-			return;
-		}
-
-		const filepath = 'messages';
-		const filename = `post-${Date.now()}.md`;
-
-		return fetch(
-			'https://api.github.com/repos/seanmorris/sycamore'
-				+ '/contents/'
-				+ (filepath)
-				+ (filepath ? '/' : '')
-				+ (filename)
-			, {method, headers, body, mode}
-		).then(response => response.json()
-		).then(response => this.args.inputPost = '');
+		return putter;
 	};
 
 	follow(event, post)

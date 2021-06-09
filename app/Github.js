@@ -63,7 +63,7 @@ export class Github
 		}
 		else
 		{
-			return;
+			return Promise.reject('No access token found.');
 		}
 
 		return fetch(

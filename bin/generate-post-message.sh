@@ -65,7 +65,7 @@ cat ${INPUT} >> ${OUTPUT};
 
 echo '-----BEGIN RSA SIGNATURE-----' > ${OUTPUT}.SIGN;
 
-openssl dgst -sha1 -sign ssh_key ${OUTPUT} \
+openssl dgst -sha1 -sign ${PRIVATE_KEY} ${OUTPUT} \
 	| openssl base64 \
 	>> ${OUTPUT}.SIGN;
 

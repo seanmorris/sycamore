@@ -2,19 +2,6 @@ import { Model } from 'curvature/model/Model';
 
 import { MessageDatabase } from './MessageDatabase';
 
-function str2ab(str) {
-    const buf = new ArrayBuffer(str.length);
-    const bufView = new Uint8Array(buf);
-    for (let i = 0, strLen = str.length; i < strLen; i++) {
-        bufView[i] = str.charCodeAt(i);
-    }
-    return buf;
-}
-
-function ab2str(buf) {
-    return String.fromCharCode.apply(null, new Uint8Array(buf));
-}
-
 export class MessageModel extends Model {
 	
 	verified = null;
@@ -42,7 +29,7 @@ export class MessageModel extends Model {
 
 			const decoded = window.atob(keyText);
 
-			return str2ab(decoded);
+			return this.constructor.stringTobuffer(decoded);
 
 		}).then(keyBuffer => {
 
@@ -72,14 +59,68 @@ export class MessageModel extends Model {
 		});
 	}
 
+	static fromSkeleton(skeleton)
+	{}
+
+	static fromUrl(url)
+	{
+		return fetch(url)
+		.then(response => response.arrayBuffer())
+		.then(buffer   => this.fromBytes(buffer))
+	}
+
+	static fromString(str)
+	{
+		return (new Blob([str], {type: 'text/plain; charset=utf-8'}))
+		.arrayBuffer().then(buffer => this.fromBytes(buffer));
+	}
+
 	static fromBytes(buffer)
 	{
-		const slug = new Uint32Array(buffer.slice(0, 4))[0];
+		const init = [
+			MessageDatabase.open('messages', 1)
+			, this.parseBytes(buffer)
+		];
 
-		if(slug !== 2173542384)
-		{
-			return Promise.reject();
-		}
+		return Promise.all(init).then(([database, message]) => {
+
+			const query  = {
+				store: 'messages',
+				index: 'url',
+				range: message.url,
+				type:  MessageModel
+			};
+
+			return database.select(query).one().then(result => {
+
+				const record = result.record;
+
+				if(!record)
+				{
+					database.insert('messages', message);
+				}
+				else if(message.issued > record.issued)
+				{
+					record.consume(message);
+
+					database.update('messages', record);
+				}
+
+				setTimeout(()=>message.verify(), 1500 * Math.random());
+
+				return message;
+			});
+		});
+	}
+
+	static parseBytes(buffer)
+	{
+		const preamble = new Uint32Array(buffer.slice(0, 4))[0];
+
+		// if(preamble !== 2173542384)
+		// {
+		// 	return Promise.reject('Invalid preamble: ' + preamble);
+		// }
 
 		const headLen   = new Uint32Array(buffer.slice(5, 9))[0];
 		const headSlice = buffer.slice(10, 10 + headLen);
@@ -118,7 +159,7 @@ export class MessageModel extends Model {
 					header: headSlice
 					, body: bodySlice
 					, message:   buffer.slice(0, bodyEnd)
-					, signature: str2ab(decoded)
+					, signature: this.stringTobuffer(decoded)
 				};
 
 				const body = header.type.substr(0,4) === 'text'
@@ -146,83 +187,17 @@ export class MessageModel extends Model {
 
 			model.consume(skeleton);
 
-			setTimeout(()=>model.verify(), 5000);
-
 			return model;
 		});
 	}
 
-	static fromString(messageBytes, dbCheck = true)
+	static stringTobuffer(str)
 	{
-		const slug = messageBytes.substring(0, 3);
-		
-		const headerHex = messageBytes.substr(3, 10);
-		const headerLen = parseInt(headerHex, 16);
-		const header    = messageBytes.substr(14, headerLen);
-		
-		const bodyStart = headerLen + 25;
-
-		const bodyHex = messageBytes.substr(headerLen + 14, 10);
-		const bodyLen = parseInt(bodyHex, 16);
-		const body    = messageBytes.substr(bodyStart, bodyLen);
-
-		const signatureStart = bodyStart + bodyLen + 1;
-		
-		const signatureHex = messageBytes.substr(signatureStart, 10);
-		const signatureLen = parseInt(signatureHex, 16);
-		const signature    = messageBytes.substr(bodyStart + bodyLen + 12);
-
-		const headerObject = JSON.parse(header);
-
-		const url = headerObject.authority + '/' + headerObject.name;
-
-		const skeleton = {
-			class: 'message'
-			, header: headerObject
-			, body
-			, signature
-			, url: headerObject.authority + '/' + headerObject.name
-		};
-
-		const message = new MessageModel;
-
-		message.consume(skeleton);
-
-		if(!dbCheck)
-		{
-			return Promise.resolve(message);
+		const buf = new ArrayBuffer(str.length);
+		const bufView = new Uint8Array(buf);
+		for (let i = 0, strLen = str.length; i < strLen; i++) {
+		bufView[i] = str.charCodeAt(i);
 		}
-
-		return MessageDatabase.open('messages', 1).then(database => {
-
-			const query  = {
-				store: 'messages',
-				index: 'url',
-				range: message.url,
-				type:  MessageModel
-			};
-			
-			return database.select(query).one().then(result => {
-			
-				const record = result.record;
-
-				if(!record)
-				{
-					const message = MessageModel.fromString(messageBytes, false)
-					.then(message => {
-						database.insert('messages', message);
-					});
-					
-				}
-				else if(message.issued > record.issued)
-				{
-					record.consume(message);
-
-					database.update('messages', record);
-				}
-
-				return record;
-			});
-		});
+		return buf;
 	}
 }

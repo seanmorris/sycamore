@@ -1,4 +1,4 @@
-<section cv-if = "!mid">
+<section cv-if = "showForm">
 
 	<form class = "post" cv-on = "submit:createPost(event)">
 		<input type = "text" placeholder = "Write a post!" cv-bind = "inputPost" />
@@ -6,8 +6,6 @@
 	</form>
 
 </section>
-
-[[mid]]
 
 <ul class = "messages" cv-each = "posts:post">
 

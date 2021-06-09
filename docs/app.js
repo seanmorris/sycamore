@@ -7071,6 +7071,8 @@ var _UserModel = require("./UserModel");
 
 var _UserDatabase = require("./UserDatabase");
 
+var _Github = require("./Github");
+
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
 
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -7123,7 +7125,7 @@ var FeedView = /*#__PURE__*/function (_View) {
 
     _defineProperty(_assertThisInitialized(_this), "postSet", new Set());
 
-    _this.args.posts = [];
+    _this.args.posts = _this.args.posts || [];
     return _this;
   }
 
@@ -7200,50 +7202,46 @@ var FeedView = /*#__PURE__*/function (_View) {
 
       fetch('/messages/' + messageUrl + '.smsg').then(function (response) {
         return response.arrayBuffer();
-      }).then(function (messageBuffer) {
-        return _this4.displayPost(messageBuffer);
+      }).then(function (buffer) {
+        return _MessageModel.MessageModel.fromBytes(buffer);
+      }).then(function (message) {
+        return _this4.displayPost(message);
       });
     }
   }, {
     key: "displayPost",
-    value: function displayPost(messageBytes) {
-      var _this5 = this;
+    value: function displayPost(message) {
+      if (!message || !message.url || this.postSet.has(message.url)) {
+        return;
+      }
 
-      var message = _MessageModel.MessageModel.fromBytes(messageBytes).then(function (message) {
-        if (!message || !message.url || _this5.postSet.has(message.url)) {
-          return;
-        }
-
-        var viewArgs = _Bindable.Bindable.make({
-          name: message.name,
-          uid: message.header.uid,
-          type: message.header.type,
-          time: new Date(message.header.issued * 1000),
-          timecode: message.header.issued,
-          author: message.header.author,
-          authority: message.header.authority,
-          slug: message.header.type.substr(0, 10) === 'text/plain' ? message.body.substr(0, 140) : null
-        });
-
-        message.bindTo('verified', function (v) {
-          if (v === true) {
-            viewArgs.verified = 'verified';
-          } else if (v === false) {
-            viewArgs.verified = 'verify-failed';
-          } else if (v === null) {
-            viewArgs.verified = 'verify-pending';
-          }
-        });
-
-        _this5.args.posts.push(viewArgs);
-
-        _this5.postSet.add(message.url);
+      var viewArgs = _Bindable.Bindable.make({
+        name: message.name,
+        uid: message.header.uid,
+        type: message.header.type,
+        time: new Date(message.header.issued * 1000),
+        timecode: message.header.issued,
+        author: message.header.author,
+        authority: message.header.authority,
+        slug: message.header.type.substr(0, 10) === 'text/plain' ? message.body.substr(0, 140) : null
       });
+
+      message.bindTo('verified', function (v) {
+        if (v === true) {
+          viewArgs.verified = 'verified';
+        } else if (v === false) {
+          viewArgs.verified = 'verify-failed';
+        } else if (v === null) {
+          viewArgs.verified = 'verify-pending';
+        }
+      });
+      this.args.posts.push(viewArgs);
+      this.postSet.add(message.url);
     }
   }, {
     key: "createPost",
     value: function createPost(event) {
-      var _this6 = this;
+      var _this5 = this;
 
       event.preventDefault();
 
@@ -7251,44 +7249,19 @@ var FeedView = /*#__PURE__*/function (_View) {
         return;
       }
 
-      var raw = this.args.inputPost;
-      var message = 'Sycamore self-edit.';
-      var content = btoa(unescape(encodeURIComponent(raw)));
-      var branch = 'master';
-      var sha = '';
-      var postChange = {
-        message: message,
-        content: content,
-        sha: sha
-      };
-      var headers = {
-        'Content-Type': 'application/json',
-        Accept: 'application/vnd.github.v3.json'
-      };
-      var gitHubToken = JSON.parse(sessionStorage.getItem('sycamore::github-token'));
-      var method = 'PUT';
-      var body = JSON.stringify(postChange);
-      var mode = 'cors';
-      var credentials = 'omit';
-
-      if (gitHubToken && gitHubToken.access_token) {
-        headers.Authorization = "token ".concat(gitHubToken.access_token);
-      } else {
-        return;
-      }
-
-      var filepath = 'messages';
-      var filename = "post-".concat(Date.now(), ".md");
-      return fetch('https://api.github.com/repos/seanmorris/sycamore' + '/contents/' + filepath + (filepath ? '/' : '') + filename, {
-        method: method,
-        headers: headers,
-        body: body,
-        mode: mode
-      }).then(function (response) {
-        return response.json();
-      }).then(function (response) {
-        return _this6.args.inputPost = '';
+      var filename = "messages/post-".concat(Date.now(), ".md");
+      var github = new _Github.Github('seanmorris/sycamore');
+      var putter = github.put({
+        data: this.args.inputPost + "\n",
+        location: filename,
+        message: 'Sycamore self-edit.',
+        branch: 'master',
+        sha: ''
       });
+      putter.then(function () {
+        return _this5.args.inputPost = '';
+      });
+      return putter;
     }
   }, {
     key: "follow",
@@ -7433,7 +7406,7 @@ var Github = /*#__PURE__*/function () {
       if (gitHubToken && gitHubToken.access_token) {
         headers.Authorization = "token ".concat(gitHubToken.access_token);
       } else {
-        return;
+        return Promise.reject('No access token found.');
       }
 
       return fetch('https://api.github.com/repos/' + this.repository + '/contents/' + location, {
@@ -7572,21 +7545,6 @@ function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.g
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-function str2ab(str) {
-  var buf = new ArrayBuffer(str.length);
-  var bufView = new Uint8Array(buf);
-
-  for (var i = 0, strLen = str.length; i < strLen; i++) {
-    bufView[i] = str.charCodeAt(i);
-  }
-
-  return buf;
-}
-
-function ab2str(buf) {
-  return String.fromCharCode.apply(null, new Uint8Array(buf));
-}
-
 var MessageModel = /*#__PURE__*/function (_Model) {
   _inherits(MessageModel, _Model);
 
@@ -7646,7 +7604,7 @@ var MessageModel = /*#__PURE__*/function (_Model) {
         return keyText.replace(/-----[\w\s]+-----/g, '').trim();
       }).then(function (keyText) {
         var decoded = window.atob(keyText);
-        return str2ab(decoded);
+        return _this2.constructor.stringTobuffer(decoded);
       }).then(function (keyBuffer) {
         return crypto.subtle.importKey('spki', keyBuffer, {
           name: "RSASSA-PKCS1-v1_5",
@@ -7665,15 +7623,71 @@ var MessageModel = /*#__PURE__*/function (_Model) {
       return ['url', 'class'];
     }
   }, {
-    key: "fromBytes",
-    value: function fromBytes(buffer) {
+    key: "fromSkeleton",
+    value: function fromSkeleton(skeleton) {}
+  }, {
+    key: "fromUrl",
+    value: function fromUrl(url) {
       var _this3 = this;
 
-      var slug = new Uint32Array(buffer.slice(0, 4))[0];
+      return fetch(url).then(function (response) {
+        return response.arrayBuffer();
+      }).then(function (buffer) {
+        return _this3.fromBytes(buffer);
+      });
+    }
+  }, {
+    key: "fromString",
+    value: function fromString(str) {
+      var _this4 = this;
 
-      if (slug !== 2173542384) {
-        return Promise.reject();
-      }
+      return new Blob([str], {
+        type: 'text/plain; charset=utf-8'
+      }).arrayBuffer().then(function (buffer) {
+        return _this4.fromBytes(buffer);
+      });
+    }
+  }, {
+    key: "fromBytes",
+    value: function fromBytes(buffer) {
+      var init = [_MessageDatabase.MessageDatabase.open('messages', 1), this.parseBytes(buffer)];
+      return Promise.all(init).then(function (_ref) {
+        var _ref2 = _slicedToArray(_ref, 2),
+            database = _ref2[0],
+            message = _ref2[1];
+
+        var query = {
+          store: 'messages',
+          index: 'url',
+          range: message.url,
+          type: MessageModel
+        };
+        return database.select(query).one().then(function (result) {
+          var record = result.record;
+
+          if (!record) {
+            database.insert('messages', message);
+          } else if (message.issued > record.issued) {
+            record.consume(message);
+            database.update('messages', record);
+          }
+
+          setTimeout(function () {
+            return message.verify();
+          }, 1500 * Math.random());
+          return message;
+        });
+      });
+    }
+  }, {
+    key: "parseBytes",
+    value: function parseBytes(buffer) {
+      var _this5 = this;
+
+      var preamble = new Uint32Array(buffer.slice(0, 4))[0]; // if(preamble !== 2173542384)
+      // {
+      // 	return Promise.reject('Invalid preamble: ' + preamble);
+      // }
 
       var headLen = new Uint32Array(buffer.slice(5, 9))[0];
       var headSlice = buffer.slice(10, 10 + headLen);
@@ -7707,18 +7721,18 @@ var MessageModel = /*#__PURE__*/function (_Model) {
             header: headSlice,
             body: bodySlice,
             message: buffer.slice(0, bodyEnd),
-            signature: str2ab(decoded)
+            signature: _this5.stringTobuffer(decoded)
           };
           var body = header.type.substr(0, 4) === 'text' ? bodyBlob.text() : bodyBlob.arrayBuffer();
           var results = [header, body, signatureBlob.text(), segments];
           return Promise.all(results);
         });
-      }).then(function (_ref) {
-        var _ref2 = _slicedToArray(_ref, 4),
-            header = _ref2[0],
-            body = _ref2[1],
-            signature = _ref2[2],
-            segments = _ref2[3];
+      }).then(function (_ref3) {
+        var _ref4 = _slicedToArray(_ref3, 4),
+            header = _ref4[0],
+            body = _ref4[1],
+            signature = _ref4[2],
+            segments = _ref4[3];
 
         var url = header.authority + '/' + header.name;
         var skeleton = {
@@ -7729,68 +7743,22 @@ var MessageModel = /*#__PURE__*/function (_Model) {
           url: url,
           segments: segments
         };
-        var model = new _this3();
+        var model = new _this5();
         model.consume(skeleton);
-        setTimeout(function () {
-          return model.verify();
-        }, 5000);
         return model;
       });
     }
   }, {
-    key: "fromString",
-    value: function fromString(messageBytes) {
-      var dbCheck = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
-      var slug = messageBytes.substring(0, 3);
-      var headerHex = messageBytes.substr(3, 10);
-      var headerLen = parseInt(headerHex, 16);
-      var header = messageBytes.substr(14, headerLen);
-      var bodyStart = headerLen + 25;
-      var bodyHex = messageBytes.substr(headerLen + 14, 10);
-      var bodyLen = parseInt(bodyHex, 16);
-      var body = messageBytes.substr(bodyStart, bodyLen);
-      var signatureStart = bodyStart + bodyLen + 1;
-      var signatureHex = messageBytes.substr(signatureStart, 10);
-      var signatureLen = parseInt(signatureHex, 16);
-      var signature = messageBytes.substr(bodyStart + bodyLen + 12);
-      var headerObject = JSON.parse(header);
-      var url = headerObject.authority + '/' + headerObject.name;
-      var skeleton = {
-        "class": 'message',
-        header: headerObject,
-        body: body,
-        signature: signature,
-        url: headerObject.authority + '/' + headerObject.name
-      };
-      var message = new MessageModel();
-      message.consume(skeleton);
+    key: "stringTobuffer",
+    value: function stringTobuffer(str) {
+      var buf = new ArrayBuffer(str.length);
+      var bufView = new Uint8Array(buf);
 
-      if (!dbCheck) {
-        return Promise.resolve(message);
+      for (var i = 0, strLen = str.length; i < strLen; i++) {
+        bufView[i] = str.charCodeAt(i);
       }
 
-      return _MessageDatabase.MessageDatabase.open('messages', 1).then(function (database) {
-        var query = {
-          store: 'messages',
-          index: 'url',
-          range: message.url,
-          type: MessageModel
-        };
-        return database.select(query).one().then(function (result) {
-          var record = result.record;
-
-          if (!record) {
-            var _message = MessageModel.fromString(messageBytes, false).then(function (message) {
-              database.insert('messages', message);
-            });
-          } else if (message.issued > record.issued) {
-            record.consume(message);
-            database.update('messages', record);
-          }
-
-          return record;
-        });
-      });
+      return buf;
     }
   }]);
 
@@ -8282,8 +8250,87 @@ var UserView = /*#__PURE__*/function (_View) {
 exports.UserView = UserView;
 });
 
+;require.register("WarehouseConsole.js", function(exports, require, module) {
+"use strict";
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.WarehouseConsole = void 0;
+
+var _View2 = require("curvature/base/View");
+
+var _MessageModel = require("./MessageModel");
+
+var _FeedView = require("./FeedView");
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _getPrototypeOf(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _getPrototypeOf(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _possibleConstructorReturn(this, result); }; }
+
+function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var WarehouseConsole = /*#__PURE__*/function (_View) {
+  _inherits(WarehouseConsole, _View);
+
+  var _super = _createSuper(WarehouseConsole);
+
+  function WarehouseConsole(args) {
+    var _this;
+
+    _classCallCheck(this, WarehouseConsole);
+
+    _this = _super.call(this, args);
+
+    _defineProperty(_assertThisInitialized(_this), "template", require('./warehouse-console.html'));
+
+    _defineProperty(_assertThisInitialized(_this), "stream", new EventSource('https://backend.warehouse.seanmorr.is/subscribe/sycamore.seanmorr.is::posts'));
+
+    var feed = _this.args.feed = new _FeedView.FeedView();
+
+    _this.listen(_this.stream, 'ServerEvent', function (event) {
+      try {
+        var frame = JSON.parse(event.data);
+
+        if (frame.payload.substr(1, 2) !== '🍁') {
+          return;
+        }
+
+        var payload = JSON.parse(frame.payload);
+
+        _MessageModel.MessageModel.fromString(payload).then(function (message) {
+          feed.displayPost(message);
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    return _this;
+  }
+
+  return WarehouseConsole;
+}(_View2.View);
+
+exports.WarehouseConsole = WarehouseConsole;
+});
+
 ;require.register("feed.html", function(exports, require, module) {
-module.exports = "<section cv-if = \"!mid\">\n\n\t<form class = \"post\" cv-on = \"submit:createPost(event)\">\n\t\t<input type = \"text\" placeholder = \"Write a post!\" cv-bind = \"inputPost\" />\n\t\t<input type = \"submit\" />\n\t</form>\n\n</section>\n\n[[mid]]\n\n<ul class = \"messages\" cv-each = \"posts:post\">\n\n\t<li class = \"[[post.verified]]\" data-type = \"[[post.type]]\">\n\t\t\n\t\t<section class = \"author\">\n\t\t\t<div class = \"avatar\"></div>\n\t\t\t<span class = \"author\">\n\t\t\t\t<a cv-link = \"user/[[post.uid]]\">[[post.author]]</a>\n\t\t\t\t<div class = \"verify icon\"></div>\n\t\t\t</span>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<small title = \"[[post.timecode]]\">[[post.id]] [[post.time]]</small>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<span class = \"body\">[[post.slug]]</span>\n\t\t</section>\n\t\t\n\t\t<section class = \"reaction-bar\">\n\t\t\t<a cv-link>Reply</a>\n\t\t\t - <a cv-link>Like</a>\n\t\t\t - <a cv-link>Pay</a>\n\t\t\t - <a cv-link cv-on = \"click:follow(event, post)\">Follow</a>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<a cv-link = \"/messages/[[post.name]]\">\n\t\t\t\t[[post.name]]\n\t\t\t\t<img class = \"icon\" src = \"/go.svg\" />\n\t\t\t</a>\n\t\t</section>\n\t\n\t</li>\n</ul>\n"
+module.exports = "<section cv-if = \"showForm\">\n\n\t<form class = \"post\" cv-on = \"submit:createPost(event)\">\n\t\t<input type = \"text\" placeholder = \"Write a post!\" cv-bind = \"inputPost\" />\n\t\t<input type = \"submit\" />\n\t</form>\n\n</section>\n\n<ul class = \"messages\" cv-each = \"posts:post\">\n\n\t<li class = \"[[post.verified]]\" data-type = \"[[post.type]]\">\n\t\t\n\t\t<section class = \"author\">\n\t\t\t<div class = \"avatar\"></div>\n\t\t\t<span class = \"author\">\n\t\t\t\t<a cv-link = \"user/[[post.uid]]\">[[post.author]]</a>\n\t\t\t\t<div class = \"verify icon\"></div>\n\t\t\t</span>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<small title = \"[[post.timecode]]\">[[post.id]] [[post.time]]</small>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<span class = \"body\">[[post.slug]]</span>\n\t\t</section>\n\t\t\n\t\t<section class = \"reaction-bar\">\n\t\t\t<a cv-link>Reply</a>\n\t\t\t - <a cv-link>Like</a>\n\t\t\t - <a cv-link>Pay</a>\n\t\t\t - <a cv-link cv-on = \"click:follow(event, post)\">Follow</a>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<a cv-link = \"/messages/[[post.name]]\">\n\t\t\t\t[[post.name]]\n\t\t\t\t<img class = \"icon\" src = \"/go.svg\" />\n\t\t\t</a>\n\t\t</section>\n\t\n\t</li>\n</ul>\n"
 });
 
 ;require.register("initialize.js", function(exports, require, module) {
@@ -8301,21 +8348,42 @@ var _UserModel = require("./UserModel");
 
 var _UserDatabase = require("./UserDatabase");
 
+var _MessageModel = require("./MessageModel");
+
+var _WarehouseConsole = require("./WarehouseConsole");
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 var view = new _RootView.RootView();
 
 _UserDatabase.UserDatabase.syncUsers();
 
 var routes = {
-  '': function _() {
-    var feed = new _FeedView.FeedView();
+  '': function _(args) {
+    var feed = new _FeedView.FeedView(_objectSpread(_objectSpread({}, args), {}, {
+      showForm: true
+    }));
     feed.loadFeeds();
     return feed;
+  },
+  'messages/%mid': function messagesMid(args) {
+    var feedView = new _FeedView.FeedView(args);
+
+    _MessageModel.MessageModel.fromUrl('/messages/' + args.mid + '.smsg').then(function (message) {
+      feedView.displayPost(message);
+    });
+
+    return feedView;
   },
   'user/%uid': function userUid(args) {
     return new _UserView.UserView(args);
   },
-  'messages/%mid': function messagesMid(args) {
-    return new _FeedView.FeedView(args);
+  'warehouse': function warehouse(args) {
+    return new _WarehouseConsole.WarehouseConsole(args);
   }
 };
 
@@ -8329,7 +8397,7 @@ view.listen(document, 'DOMContentLoaded', function (event) {
 });
 
 require.register("root.html", function(exports, require, module) {
-module.exports = "<section class = \"app theme-[[profileTheme]]\">\n\n\t<section class = \"header\">\n\t\n\t\t<div class = \"branding\">\n\t\t\t<h1><a cv-link = \"/\">[[profileName]]</a></h1>\n\t\t\t<small>Fly you fools.</small>\n\t\t</div>\n\t\t\n\t\t<div class = \"menu\">\n\t\t\t<a cv-on = \"click:githubLoginClicked(event)\">\n\t\t\t\t<img class = \"icon\" src = \"/user.svg\">\n\t\t\t</a>\n\t\t\t<a cv-on = \"click:openSettings(event)\">\n\t\t\t\t<img class = \"icon\" src = \"/gear.svg\">\n\t\t\t</a>\n\t\t</div>\n\t</section>\n\n\t<section class = \"body\">\n\t\t\n\t\t[[content]]\n\n\t\t[[settings]]\n\t\n\t</section>\n\n\t<section class = \"footer\">\n\t\t&copy; 2021 Sean Morris, All rights reserved.\n\t</section>\n\n</section>"
+module.exports = "<section class = \"app theme-[[profileTheme]]\">\n\n\t<section class = \"header\">\n\t\n\t\t<div class = \"branding\">\n\t\t\t<h1><a cv-link = \"/\">[[profileName]]</a></h1>\n\t\t\t<small>Fly you fools.</small>\n\t\t</div>\n\n\t\t<div class = \"nav\">\n\t\t\t<a href = \"/\">home</a>\n\t\t\t<a href = \"/warehouse\">warehouse</a>\n\t\t</div>\n\n\n\t\t<div class = \"menu\">\n\t\t\t<a cv-on = \"click:githubLoginClicked(event)\">\n\t\t\t\t<img class = \"icon\" src = \"/user.svg\">\n\t\t\t</a>\n\t\t\t<!-- <a cv-on = \"click:openSettings(event)\">\n\t\t\t\t<img class = \"icon\" src = \"/gear.svg\">\n\t\t\t</a> -->\n\t\t</div>\n\t</section>\n\n\t<section class = \"body\">\n\t\t\n\t\t[[content]]\n\n\t\t[[settings]]\n\t\n\t</section>\n\n\t<section class = \"footer\">\n\t\t&copy; 2021 Sean Morris, All rights reserved.\n\t</section>\n\n</section>\n"
 });
 
 ;require.register("user-list.html", function(exports, require, module) {
@@ -8338,6 +8406,10 @@ module.exports = "<section class = \"settings [[removeMode]]\">\n\t<h2>Syndicati
 
 ;require.register("user.html", function(exports, require, module) {
 module.exports = "<section class = \"about-me\">\n\n\t<section class = \"author\">\n\t\t<div class = \"avatar\" style = \"background-image: url([[img]])\"></div>\t\t\n\t\t<span class = \"author\">\n\t\t\t<a class = \"user-name\" cv-link = \"/user/[[uid]]\">[[name]]</a>\n\t\t\t<a class = \"user-link\" href = \"[[url]]\" target = \"_blank\">[[url]]</a>\n\t\t</span>\n\t</section>\n\n\t<p>about:</p>\n\t<section class = \"block-text\">[[about]]</span>\n\t</section>\n\n\t<p>contact card issued on:</p>\n\t<section class = \"block-text\">[[issued]]</span>\n\t</section>\n\n\t<p>hub server:</p>\n\t<section class = \"block-text\">[[hub]]</span>\n\t</section>\n\n\t<p>uid:</p>\n\t<section class = \"block-text\">[[uid]]</span>\n\t</section>\n\n\t<p>public key:</p>\n\t<section class = \"block-text\">[[key]]</span>\n\t</section>\n\n</section>\n"
+});
+
+;require.register("warehouse-console.html", function(exports, require, module) {
+module.exports = "[[feed]]\n"
 });
 
 ;require.register("___globals___", function(exports, require, module) {
