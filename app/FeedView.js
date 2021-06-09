@@ -1,3 +1,4 @@
+import { Bindable } from 'curvature/base/Bindable';
 import { View } from 'curvature/base/View';
 import { Model } from 'curvature/model/Model';
 
@@ -53,20 +54,20 @@ export class FeedView extends View
 	loadMessage(messageUrl)
 	{
 		fetch('/messages/' + messageUrl + '.smsg')
-		.then(response => response.text())
-		.then(messageBody => this.displayPost(messageBody));
+			.then(response => response.arrayBuffer())
+			.then(messageBuffer => this.displayPost(messageBuffer));
 	}
 
 	displayPost(messageBytes)
 	{
-		const message = MessageModel.fromString(messageBytes).then(message => {
-			
+		const message = MessageModel.fromBytes(messageBytes).then(message => {
+
 			if(!message || !message.url || this.postSet.has(message.url))
 			{
 				return;
 			}
 
-			const viewArgs = {
+			const viewArgs = Bindable.make({
 				name:        message.name
 				, uid:       message.header.uid
 				, type:      message.header.type
@@ -77,7 +78,22 @@ export class FeedView extends View
 				, slug:      message.header.type.substr(0, 10) === 'text/plain'
 					? message.body.substr(0, 140)
 					: null
-			};
+			});
+
+			message.bindTo('verified', v => {
+				if(v === true)
+				{
+					viewArgs.verified = 'verified';
+				}
+				else if(v === false)
+				{
+					viewArgs.verified = 'verify-failed';
+				}
+				else if(v === null)
+				{
+					viewArgs.verified = 'verify-pending';
+				}
+			});
 
 			this.args.posts.push(viewArgs);
 
@@ -94,7 +110,7 @@ export class FeedView extends View
 			return;
 		}
 
-		const raw = view.args.inputPost;
+		const raw = this.args.inputPost;
 
 		const message = 'Sycamore self-edit.';
 		const content = btoa(unescape(encodeURIComponent(raw)));

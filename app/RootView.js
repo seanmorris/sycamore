@@ -11,7 +11,7 @@ export class RootView extends View
 		super(args);
 
 		this.args.profileName  = 'Sycamore';
-		this.args.profileTheme = 1 ? 'red-dots' : 'maple-tree';
+		this.args.profileTheme = 0 ? 'red-dots' : 'maple-tree';
 	}
 
 	githubLoginClicked(event)

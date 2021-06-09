@@ -107,3 +107,30 @@ ul.messages li span.author a {
 	text-decoration: none;
 	color: black;
 }
+
+ul.messages li {
+	transition: opacity 0.5s ease-in, filter 0.25s ease-in;
+}
+
+ul.messages li.verify-pending {
+	opacity: 0.75;
+	filter: blur(1px);
+}
+
+ul.messages li.verify-failed {
+	background-color: rgba(128,64,64,0.75);
+	opacity: 0.5;
+}
+
+ul.messages li.verified {
+	opacity: 1;
+}
+
+ul.messages li.verified .verify.icon {
+	display: inline-block;
+	vertical-align: middle;
+	width: 1em;
+	height: 1em;
+	background-image: url(/lock-verified.svg);
+	background-size: contain;
+}

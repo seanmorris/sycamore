@@ -11,12 +11,13 @@
 
 <ul class = "messages" cv-each = "posts:post">
 
-	<li data-type = "[[post.type]]">
+	<li class = "[[post.verified]]" data-type = "[[post.type]]">
 		
 		<section class = "author">
 			<div class = "avatar"></div>
 			<span class = "author">
 				<a cv-link = "user/[[post.uid]]">[[post.author]]</a>
+				<div class = "verify icon"></div>
 			</span>
 		</section>
 		

@@ -7059,6 +7059,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.FeedView = void 0;
 
+var _Bindable = require("curvature/base/Bindable");
+
 var _View2 = require("curvature/base/View");
 
 var _Model = require("curvature/model/Model");
@@ -7197,9 +7199,9 @@ var FeedView = /*#__PURE__*/function (_View) {
       var _this4 = this;
 
       fetch('/messages/' + messageUrl + '.smsg').then(function (response) {
-        return response.text();
-      }).then(function (messageBody) {
-        return _this4.displayPost(messageBody);
+        return response.arrayBuffer();
+      }).then(function (messageBuffer) {
+        return _this4.displayPost(messageBuffer);
       });
     }
   }, {
@@ -7207,12 +7209,12 @@ var FeedView = /*#__PURE__*/function (_View) {
     value: function displayPost(messageBytes) {
       var _this5 = this;
 
-      var message = _MessageModel.MessageModel.fromString(messageBytes).then(function (message) {
+      var message = _MessageModel.MessageModel.fromBytes(messageBytes).then(function (message) {
         if (!message || !message.url || _this5.postSet.has(message.url)) {
           return;
         }
 
-        var viewArgs = {
+        var viewArgs = _Bindable.Bindable.make({
           name: message.name,
           uid: message.header.uid,
           type: message.header.type,
@@ -7221,7 +7223,17 @@ var FeedView = /*#__PURE__*/function (_View) {
           author: message.header.author,
           authority: message.header.authority,
           slug: message.header.type.substr(0, 10) === 'text/plain' ? message.body.substr(0, 140) : null
-        };
+        });
+
+        message.bindTo('verified', function (v) {
+          if (v === true) {
+            viewArgs.verified = 'verified';
+          } else if (v === false) {
+            viewArgs.verified = 'verify-failed';
+          } else if (v === null) {
+            viewArgs.verified = 'verify-pending';
+          }
+        });
 
         _this5.args.posts.push(viewArgs);
 
@@ -7239,7 +7251,7 @@ var FeedView = /*#__PURE__*/function (_View) {
         return;
       }
 
-      var raw = view.args.inputPost;
+      var raw = this.args.inputPost;
       var message = 'Sycamore self-edit.';
       var content = btoa(unescape(encodeURIComponent(raw)));
       var branch = 'master';
@@ -7526,6 +7538,18 @@ var _Model2 = require("curvature/model/Model");
 
 var _MessageDatabase = require("./MessageDatabase");
 
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { var _i = arr && (typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]); if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -7548,6 +7572,21 @@ function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.g
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
+function str2ab(str) {
+  var buf = new ArrayBuffer(str.length);
+  var bufView = new Uint8Array(buf);
+
+  for (var i = 0, strLen = str.length; i < strLen; i++) {
+    bufView[i] = str.charCodeAt(i);
+  }
+
+  return buf;
+}
+
+function ab2str(buf) {
+  return String.fromCharCode.apply(null, new Uint8Array(buf));
+}
+
 var MessageModel = /*#__PURE__*/function (_Model) {
   _inherits(MessageModel, _Model);
 
@@ -7564,7 +7603,11 @@ var MessageModel = /*#__PURE__*/function (_Model) {
 
     _this = _super.call.apply(_super, [this].concat(args));
 
+    _defineProperty(_assertThisInitialized(_this), "verified", null);
+
     _defineProperty(_assertThisInitialized(_this), "signature", void 0);
+
+    _defineProperty(_assertThisInitialized(_this), "segments", void 0);
 
     _defineProperty(_assertThisInitialized(_this), "header", void 0);
 
@@ -7592,10 +7635,107 @@ var MessageModel = /*#__PURE__*/function (_Model) {
     get: function get() {
       return this.header && this.header.name;
     }
+  }, {
+    key: "verify",
+    value: function verify() {
+      var _this2 = this;
+
+      return fetch(this.header.key).then(function (r) {
+        return r.text();
+      }).then(function (keyText) {
+        return keyText.replace(/-----[\w\s]+-----/g, '').trim();
+      }).then(function (keyText) {
+        var decoded = window.atob(keyText);
+        return str2ab(decoded);
+      }).then(function (keyBuffer) {
+        return crypto.subtle.importKey('spki', keyBuffer, {
+          name: "RSASSA-PKCS1-v1_5",
+          hash: "SHA-1"
+        }, true, ["verify"]);
+      }).then(function (publicKey) {
+        var verified = crypto.subtle.verify('RSASSA-PKCS1-v1_5', publicKey, _this2.segments.signature, _this2.segments.message);
+        return verified;
+      }).then(function (verified) {
+        return _this2.verified = verified;
+      });
+    }
   }], [{
     key: "keyProps",
     get: function get() {
       return ['url', 'class'];
+    }
+  }, {
+    key: "fromBytes",
+    value: function fromBytes(buffer) {
+      var _this3 = this;
+
+      var slug = new Uint32Array(buffer.slice(0, 4))[0];
+
+      if (slug !== 2173542384) {
+        return Promise.reject();
+      }
+
+      var headLen = new Uint32Array(buffer.slice(5, 9))[0];
+      var headSlice = buffer.slice(10, 10 + headLen);
+      var headBlob = new Blob([headSlice], {
+        type: 'text/plain; charset=utf-8'
+      });
+      var headEnd = 10 + headLen;
+      return headBlob.text().then(function (headerText) {
+        var header = JSON.parse(headerText);
+        Object.freeze(header);
+        var bodyLen = new Uint32Array(buffer.slice(headEnd, headEnd + 4))[0];
+        var bodySlice = buffer.slice(headEnd + 5, headEnd + bodyLen + 5);
+        var bodyBlob = new Blob([bodySlice], {
+          type: header.type || 'text/plain; charset=utf-8'
+        });
+        var bodyEnd = headEnd + bodyLen + 5;
+        var signatureLen = new Uint32Array(buffer.slice(bodyEnd, bodyEnd + 4))[0];
+        var signatureSlice = buffer.slice(bodyEnd + 5, bodyEnd + signatureLen + 5);
+        var signatureBlob = new Blob([signatureSlice], {
+          type: 'text/plain; charset=utf-8'
+        });
+        var signatureData = signatureSlice.slice(30, -29); // const blob = new Blob([signatureSlice], {type: 'text/plain; charset=utf-8'});
+        // blob.text().then(t => console.log(t));
+
+        var signatureBlob2 = new Blob([signatureData], {
+          type: 'text/plain; charset=utf-8'
+        });
+        return signatureBlob2.text().then(function (signature) {
+          var decoded = window.atob(signature);
+          var segments = {
+            header: headSlice,
+            body: bodySlice,
+            message: buffer.slice(0, bodyEnd),
+            signature: str2ab(decoded)
+          };
+          var body = header.type.substr(0, 4) === 'text' ? bodyBlob.text() : bodyBlob.arrayBuffer();
+          var results = [header, body, signatureBlob.text(), segments];
+          return Promise.all(results);
+        });
+      }).then(function (_ref) {
+        var _ref2 = _slicedToArray(_ref, 4),
+            header = _ref2[0],
+            body = _ref2[1],
+            signature = _ref2[2],
+            segments = _ref2[3];
+
+        var url = header.authority + '/' + header.name;
+        var skeleton = {
+          header: header,
+          body: body,
+          buffer: buffer,
+          signature: signature,
+          url: url,
+          segments: segments
+        };
+        var model = new _this3();
+        model.consume(skeleton);
+        setTimeout(function () {
+          return model.verify();
+        }, 5000);
+        return model;
+      });
     }
   }, {
     key: "fromString",
@@ -7658,10 +7798,9 @@ var MessageModel = /*#__PURE__*/function (_Model) {
 }(_Model2.Model);
 
 exports.MessageModel = MessageModel;
-;
 });
 
-require.register("RootView.js", function(exports, require, module) {
+;require.register("RootView.js", function(exports, require, module) {
 "use strict";
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -7712,7 +7851,7 @@ var RootView = /*#__PURE__*/function (_View) {
     _defineProperty(_assertThisInitialized(_this), "template", require('./root.html'));
 
     _this.args.profileName = 'Sycamore';
-    _this.args.profileTheme = 1 ? 'red-dots' : 'maple-tree';
+    _this.args.profileTheme = 0 ? 'red-dots' : 'maple-tree';
     return _this;
   }
 
@@ -8144,7 +8283,7 @@ exports.UserView = UserView;
 });
 
 ;require.register("feed.html", function(exports, require, module) {
-module.exports = "<section cv-if = \"!mid\">\n\n\t<form class = \"post\" cv-on = \"submit:createPost(event)\">\n\t\t<input type = \"text\" placeholder = \"Write a post!\" cv-bind = \"inputPost\" />\n\t\t<input type = \"submit\" />\n\t</form>\n\n</section>\n\n[[mid]]\n\n<ul class = \"messages\" cv-each = \"posts:post\">\n\n\t<li data-type = \"[[post.type]]\">\n\t\t\n\t\t<section class = \"author\">\n\t\t\t<div class = \"avatar\"></div>\n\t\t\t<span class = \"author\">\n\t\t\t\t<a cv-link = \"user/[[post.uid]]\">[[post.author]]</a>\n\t\t\t</span>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<small title = \"[[post.timecode]]\">[[post.id]] [[post.time]]</small>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<span class = \"body\">[[post.slug]]</span>\n\t\t</section>\n\t\t\n\t\t<section class = \"reaction-bar\">\n\t\t\t<a cv-link>Reply</a>\n\t\t\t - <a cv-link>Like</a>\n\t\t\t - <a cv-link>Pay</a>\n\t\t\t - <a cv-link cv-on = \"click:follow(event, post)\">Follow</a>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<a cv-link = \"/messages/[[post.name]]\">\n\t\t\t\t[[post.name]]\n\t\t\t\t<img class = \"icon\" src = \"/go.svg\" />\n\t\t\t</a>\n\t\t</section>\n\t\n\t</li>\n</ul>"
+module.exports = "<section cv-if = \"!mid\">\n\n\t<form class = \"post\" cv-on = \"submit:createPost(event)\">\n\t\t<input type = \"text\" placeholder = \"Write a post!\" cv-bind = \"inputPost\" />\n\t\t<input type = \"submit\" />\n\t</form>\n\n</section>\n\n[[mid]]\n\n<ul class = \"messages\" cv-each = \"posts:post\">\n\n\t<li class = \"[[post.verified]]\" data-type = \"[[post.type]]\">\n\t\t\n\t\t<section class = \"author\">\n\t\t\t<div class = \"avatar\"></div>\n\t\t\t<span class = \"author\">\n\t\t\t\t<a cv-link = \"user/[[post.uid]]\">[[post.author]]</a>\n\t\t\t\t<div class = \"verify icon\"></div>\n\t\t\t</span>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<small title = \"[[post.timecode]]\">[[post.id]] [[post.time]]</small>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<span class = \"body\">[[post.slug]]</span>\n\t\t</section>\n\t\t\n\t\t<section class = \"reaction-bar\">\n\t\t\t<a cv-link>Reply</a>\n\t\t\t - <a cv-link>Like</a>\n\t\t\t - <a cv-link>Pay</a>\n\t\t\t - <a cv-link cv-on = \"click:follow(event, post)\">Follow</a>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<a cv-link = \"/messages/[[post.name]]\">\n\t\t\t\t[[post.name]]\n\t\t\t\t<img class = \"icon\" src = \"/go.svg\" />\n\t\t\t</a>\n\t\t</section>\n\t\n\t</li>\n</ul>\n"
 });
 
 ;require.register("initialize.js", function(exports, require, module) {
@@ -8198,7 +8337,7 @@ module.exports = "<section class = \"settings [[removeMode]]\">\n\t<h2>Syndicati
 });
 
 ;require.register("user.html", function(exports, require, module) {
-module.exports = "<section class = \"about-me\">\n\n\t<section class = \"author\">\n\t\t<div class = \"avatar\" style = \"background-image: url([[img]])\"></div>\t\t\n\t\t<span class = \"author\">\n\t\t\t<a class = \"user-name\" cv-link = \"/user/[[uid]]\">[[name]]</a>\n\t\t\t<a class = \"user-link\" href = \"[[url]]\" target = \"_blank\">[[url]]</a>\n\t\t</span>\n\t</section>\n\n\t<p>about:</p>\n\t<section class = \"block-text\">[[about]]</span>\n\t</section>\n\n\t<p>contact card issued on:</p>\n\t<section class = \"block-text\">[[issued]]</span>\n\t</section>\n\n\t<p>hub server:</p>\n\t<section class = \"block-text\">[[hub]]</span>\n\t</section>\n\n\t<p>uid:</p>\n\t<section class = \"block-text\">[[uid]]</span>\n\t</section>\n\n\t<p>public key:</p>\n\t<section class = \"block-text\">[[key]]</span>\n\t</section>\n\n\t<p>signature:</p>\n\t<section class = \"block-text\">[[key]]</span>\n\t</section>\n\n</section>"
+module.exports = "<section class = \"about-me\">\n\n\t<section class = \"author\">\n\t\t<div class = \"avatar\" style = \"background-image: url([[img]])\"></div>\t\t\n\t\t<span class = \"author\">\n\t\t\t<a class = \"user-name\" cv-link = \"/user/[[uid]]\">[[name]]</a>\n\t\t\t<a class = \"user-link\" href = \"[[url]]\" target = \"_blank\">[[url]]</a>\n\t\t</span>\n\t</section>\n\n\t<p>about:</p>\n\t<section class = \"block-text\">[[about]]</span>\n\t</section>\n\n\t<p>contact card issued on:</p>\n\t<section class = \"block-text\">[[issued]]</span>\n\t</section>\n\n\t<p>hub server:</p>\n\t<section class = \"block-text\">[[hub]]</span>\n\t</section>\n\n\t<p>uid:</p>\n\t<section class = \"block-text\">[[uid]]</span>\n\t</section>\n\n\t<p>public key:</p>\n\t<section class = \"block-text\">[[key]]</span>\n\t</section>\n\n</section>\n"
 });
 
 ;require.register("___globals___", function(exports, require, module) {
