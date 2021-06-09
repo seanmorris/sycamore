@@ -32,8 +32,8 @@ jobs:
         run:  bash bin/generate-post-messages.sh
         env:
           STATIC_HOSTNAME: ${{ secrets.STATIC_HOSTNAME }}
-          AUTHOR: ${{ secrets.AUTHOR }}
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          AUTHOR: ${{ secrets.AUTHOR }}
 
       - name: Generate the feeds.
         run:  bash bin/generate-latest-feed.sh
