@@ -36,9 +36,9 @@ export class MessageModel extends Model {
 			return crypto.subtle.importKey(
 				'spki'
 				, keyBuffer
-				, {name: "RSASSA-PKCS1-v1_5", hash: "SHA-1"}
+				, {name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-1'}
 				, true
-				, ["verify"]
+				, ['verify']
 			);
 
 		}).then(publicKey => {
@@ -71,6 +71,10 @@ export class MessageModel extends Model {
 
 	static fromString(str)
 	{
+		const buffer = this.stringTobuffer(str);
+
+		console.log(str);
+
 		return (new Blob([str], {type: 'text/plain; charset=utf-8'}))
 		.arrayBuffer().then(buffer => this.fromBytes(buffer));
 	}
@@ -117,10 +121,10 @@ export class MessageModel extends Model {
 	{
 		const preamble = new Uint32Array(buffer.slice(0, 4))[0];
 
-		// if(preamble !== 2173542384)
-		// {
-		// 	return Promise.reject('Invalid preamble: ' + preamble);
-		// }
+		if(preamble !== 2173542384)
+		{
+			return Promise.reject('Invalid preamble: ' + preamble);
+		}
 
 		const headLen   = new Uint32Array(buffer.slice(5, 9))[0];
 		const headSlice = buffer.slice(10, 10 + headLen);
@@ -144,11 +148,9 @@ export class MessageModel extends Model {
 			const signatureSlice = buffer.slice(bodyEnd + 5, bodyEnd + signatureLen + 5);
 			const signatureBlob  = new Blob([signatureSlice], {type: 'text/plain; charset=utf-8'});
 
+			// (new Blob([buffer], {type: 'text/plain; charset=utf-8'})).text().then(t => console.log(t));
+
 			const signatureData  = signatureSlice.slice(30,-29);
-
-			// const blob = new Blob([signatureSlice], {type: 'text/plain; charset=utf-8'});
-			// blob.text().then(t => console.log(t));
-
 			const signatureBlob2 = new Blob([signatureData], {type: 'text/plain; charset=utf-8'});
 
 			return signatureBlob2.text().then(signature => {
@@ -164,7 +166,7 @@ export class MessageModel extends Model {
 
 				const body = header.type.substr(0,4) === 'text'
 					? bodyBlob.text()
-					: bodyBlob.arrayBuffer();
+					: URL.createObjectURL(bodyBlob);
 
 				const results = [
 					header
@@ -186,6 +188,8 @@ export class MessageModel extends Model {
 			const model = new this;
 
 			model.consume(skeleton);
+
+			console.log( model );
 
 			return model;
 		});

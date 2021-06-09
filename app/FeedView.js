@@ -68,6 +68,16 @@ export class FeedView extends View
 			return;
 		}
 
+		const short = message.header.type.substr(0, 10) === 'text/plain'
+			? message.body.substr(0, 140)
+			: message.body;
+
+		const full = message.body;
+
+		const image = message.header.type.substr(0, 6) === 'image/'
+			? message.body
+			: null;
+
 		const viewArgs = Bindable.make({
 			name:        message.name
 			, uid:       message.header.uid
@@ -76,9 +86,9 @@ export class FeedView extends View
 			, timecode:  message.header.issued
 			, author:    message.header.author
 			, authority: message.header.authority
-			, slug:      message.header.type.substr(0, 10) === 'text/plain'
-				? message.body.substr(0, 140)
-				: null
+			, short
+			, full
+			, image
 		});
 
 		message.bindTo('verified', v => {

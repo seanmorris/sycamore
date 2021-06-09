@@ -7215,6 +7215,11 @@ var FeedView = /*#__PURE__*/function (_View) {
         return;
       }
 
+      var _short = message.header.type.substr(0, 10) === 'text/plain' ? message.body.substr(0, 140) : message.body;
+
+      var full = message.body;
+      var image = message.header.type.substr(0, 6) === 'image/' ? message.body : null;
+
       var viewArgs = _Bindable.Bindable.make({
         name: message.name,
         uid: message.header.uid,
@@ -7223,7 +7228,9 @@ var FeedView = /*#__PURE__*/function (_View) {
         timecode: message.header.issued,
         author: message.header.author,
         authority: message.header.authority,
-        slug: message.header.type.substr(0, 10) === 'text/plain' ? message.body.substr(0, 140) : null
+        "short": _short,
+        full: full,
+        image: image
       });
 
       message.bindTo('verified', function (v) {
@@ -7607,9 +7614,9 @@ var MessageModel = /*#__PURE__*/function (_Model) {
         return _this2.constructor.stringTobuffer(decoded);
       }).then(function (keyBuffer) {
         return crypto.subtle.importKey('spki', keyBuffer, {
-          name: "RSASSA-PKCS1-v1_5",
-          hash: "SHA-1"
-        }, true, ["verify"]);
+          name: 'RSASSA-PKCS1-v1_5',
+          hash: 'SHA-1'
+        }, true, ['verify']);
       }).then(function (publicKey) {
         var verified = crypto.subtle.verify('RSASSA-PKCS1-v1_5', publicKey, _this2.segments.signature, _this2.segments.message);
         return verified;
@@ -7641,6 +7648,8 @@ var MessageModel = /*#__PURE__*/function (_Model) {
     value: function fromString(str) {
       var _this4 = this;
 
+      var buffer = this.stringTobuffer(str);
+      console.log(str);
       return new Blob([str], {
         type: 'text/plain; charset=utf-8'
       }).arrayBuffer().then(function (buffer) {
@@ -7684,10 +7693,11 @@ var MessageModel = /*#__PURE__*/function (_Model) {
     value: function parseBytes(buffer) {
       var _this5 = this;
 
-      var preamble = new Uint32Array(buffer.slice(0, 4))[0]; // if(preamble !== 2173542384)
-      // {
-      // 	return Promise.reject('Invalid preamble: ' + preamble);
-      // }
+      var preamble = new Uint32Array(buffer.slice(0, 4))[0];
+
+      if (preamble !== 2173542384) {
+        return Promise.reject('Invalid preamble: ' + preamble);
+      }
 
       var headLen = new Uint32Array(buffer.slice(5, 9))[0];
       var headSlice = buffer.slice(10, 10 + headLen);
@@ -7708,10 +7718,9 @@ var MessageModel = /*#__PURE__*/function (_Model) {
         var signatureSlice = buffer.slice(bodyEnd + 5, bodyEnd + signatureLen + 5);
         var signatureBlob = new Blob([signatureSlice], {
           type: 'text/plain; charset=utf-8'
-        });
-        var signatureData = signatureSlice.slice(30, -29); // const blob = new Blob([signatureSlice], {type: 'text/plain; charset=utf-8'});
-        // blob.text().then(t => console.log(t));
+        }); // (new Blob([buffer], {type: 'text/plain; charset=utf-8'})).text().then(t => console.log(t));
 
+        var signatureData = signatureSlice.slice(30, -29);
         var signatureBlob2 = new Blob([signatureData], {
           type: 'text/plain; charset=utf-8'
         });
@@ -7723,7 +7732,7 @@ var MessageModel = /*#__PURE__*/function (_Model) {
             message: buffer.slice(0, bodyEnd),
             signature: _this5.stringTobuffer(decoded)
           };
-          var body = header.type.substr(0, 4) === 'text' ? bodyBlob.text() : bodyBlob.arrayBuffer();
+          var body = header.type.substr(0, 4) === 'text' ? bodyBlob.text() : URL.createObjectURL(bodyBlob);
           var results = [header, body, signatureBlob.text(), segments];
           return Promise.all(results);
         });
@@ -7745,6 +7754,7 @@ var MessageModel = /*#__PURE__*/function (_Model) {
         };
         var model = new _this5();
         model.consume(skeleton);
+        console.log(model);
         return model;
       });
     }
@@ -8330,7 +8340,7 @@ exports.WarehouseConsole = WarehouseConsole;
 });
 
 ;require.register("feed.html", function(exports, require, module) {
-module.exports = "<section cv-if = \"showForm\">\n\n\t<form class = \"post\" cv-on = \"submit:createPost(event)\">\n\t\t<input type = \"text\" placeholder = \"Write a post!\" cv-bind = \"inputPost\" />\n\t\t<input type = \"submit\" />\n\t</form>\n\n</section>\n\n<ul class = \"messages\" cv-each = \"posts:post\">\n\n\t<li class = \"[[post.verified]]\" data-type = \"[[post.type]]\">\n\t\t\n\t\t<section class = \"author\">\n\t\t\t<div class = \"avatar\"></div>\n\t\t\t<span class = \"author\">\n\t\t\t\t<a cv-link = \"user/[[post.uid]]\">[[post.author]]</a>\n\t\t\t\t<div class = \"verify icon\"></div>\n\t\t\t</span>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<small title = \"[[post.timecode]]\">[[post.id]] [[post.time]]</small>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<span class = \"body\">[[post.slug]]</span>\n\t\t</section>\n\t\t\n\t\t<section class = \"reaction-bar\">\n\t\t\t<a cv-link>Reply</a>\n\t\t\t - <a cv-link>Like</a>\n\t\t\t - <a cv-link>Pay</a>\n\t\t\t - <a cv-link cv-on = \"click:follow(event, post)\">Follow</a>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<a cv-link = \"/messages/[[post.name]]\">\n\t\t\t\t[[post.name]]\n\t\t\t\t<img class = \"icon\" src = \"/go.svg\" />\n\t\t\t</a>\n\t\t</section>\n\t\n\t</li>\n</ul>\n"
+module.exports = "<section cv-if = \"showForm\">\n\n\t<form class = \"post\" cv-on = \"submit:createPost(event)\">\n\t\t<input type = \"text\" placeholder = \"Write a post!\" cv-bind = \"inputPost\" />\n\t\t<input type = \"submit\" />\n\t</form>\n\n</section>\n\n<ul class = \"messages\" cv-each = \"posts:post\">\n\n\t<li class = \"[[post.verified]]\" data-type = \"[[post.type]]\">\n\t\t\n\t\t<section class = \"author\">\n\t\t\t<div class = \"avatar\"></div>\n\t\t\t<span class = \"author\">\n\t\t\t\t<a cv-link = \"user/[[post.uid]]\">[[post.author]]</a>\n\t\t\t\t<div class = \"verify icon\"></div>\n\t\t\t</span>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<small title = \"[[post.timecode]]\">[[post.id]] [[post.time]]</small>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<span class = \"body short\">[[post.short]]</span>\n\t\t\t<!-- <span class = \"body full\">[[post.full]]</span> -->\n\t\t\t<span class = \"body image\"><img src = \"[[post.image]]\"></span>\n\t\t</section>\n\t\t\n\t\t<section class = \"reaction-bar\">\n\t\t\t<a cv-link>Reply</a>\n\t\t\t - <a cv-link>Like</a>\n\t\t\t - <a cv-link>Pay</a>\n\t\t\t - <a cv-link cv-on = \"click:follow(event, post)\">Follow</a>\n\t\t</section>\n\t\t\n\t\t<section>\n\t\t\t<a cv-link = \"/messages/[[post.name]]\">\n\t\t\t\t[[post.name]]\n\t\t\t\t<img class = \"icon\" src = \"/go.svg\" />\n\t\t\t</a>\n\t\t</section>\n\t\n\t</li>\n</ul>\n"
 });
 
 ;require.register("initialize.js", function(exports, require, module) {
