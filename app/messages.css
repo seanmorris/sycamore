@@ -51,7 +51,7 @@ form.post input[type="text"] {
 	flex; 1;
 }
 
-ul.messages li:not([data-type^="text/plain"]) .body.short {
+ul.messages li:not([data-type^="text"]) .body.short {
 	display: none;
 }
 
@@ -93,7 +93,7 @@ ul.messages li span.body {
 	font-family: sans;
 }
 
-ul.messages li span.body {
+ul.messages li[data-type^="text/plain"] span.body {
 	font-size: 1.35rem;
 	white-space: pre-wrap;
 }
