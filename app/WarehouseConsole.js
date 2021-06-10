@@ -18,27 +18,17 @@ export class WarehouseConsole extends View
 
 			try
 			{
-				const frame = JSON.parse(event.data);
+				const frame = JSON.parse( event.data );
 
-				if(frame.payload.substr(1,2) !== '🍁')
-				{
-					return;
-				}
-
-				const payload = JSON.parse(frame.payload);
-
-				MessageModel.fromString(payload).then(message => {
-
-					feed.displayPost(message);
-
-				})
+				fetch('data:application/sycamore;base64,' + frame.payload)
+				.then(response => response.arrayBuffer())
+				.then(bytes    => MessageModel.fromBytes(bytes))
+				.then(message  => feed.displayPost(message));
 			}
 			catch(error)
 			{
 				console.log(error);
 			}
-
-
 		});
 	}
 }

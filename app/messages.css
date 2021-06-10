@@ -51,10 +51,6 @@ form.post input[type="text"] {
 	flex; 1;
 }
 
-ul.messages li:not([data-type^="text"]) .body.short {
-	display: none;
-}
-
 ul.messages li section:not(:last-child) {
 	margin-bottom: 0.5rem;
 }
@@ -93,7 +89,7 @@ ul.messages li span.body {
 	font-family: sans;
 }
 
-ul.messages li[data-type^="text/plain"] span.body {
+ul.messages span.body.text {
 	font-size: 1.35rem;
 	white-space: pre-wrap;
 }
@@ -147,6 +143,12 @@ ul.messages li.verified .verify.icon {
 	background-size: contain;
 }
 
-ul.messages .body.image img {
+ul.messages .body img,
+ul.messages .body video,
+ul.messages .body iframe {
 	width: 100%;
+}
+
+ul.messages .body iframe {
+	height: 18rem;
 }

@@ -27,9 +27,9 @@ export class MessageModel extends Model {
 
 		}).then(keyText => {
 
-			const decoded = window.atob(keyText);
+			const uri = 'data:text/plain;base64,' + keyText;
 
-			return this.constructor.stringTobuffer(decoded);
+			return fetch(uri).then(response => response.arrayBuffer())
 
 		}).then(keyBuffer => {
 
@@ -71,10 +71,6 @@ export class MessageModel extends Model {
 
 	static fromString(str)
 	{
-		const buffer = this.stringTobuffer(str);
-
-		console.log(str);
-
 		return (new Blob([str], {type: 'text/plain; charset=utf-8'}))
 		.arrayBuffer().then(buffer => this.fromBytes(buffer));
 	}
@@ -136,47 +132,46 @@ export class MessageModel extends Model {
 
 			const header = JSON.parse(headerText);
 
-			Object.freeze(header);
-
 			const bodyLen   = new Uint32Array(buffer.slice(headEnd, headEnd + 4))[0];
 			const bodySlice = buffer.slice(headEnd + 5, headEnd + bodyLen + 5);
-			const bodyBlob  = new Blob([bodySlice], {type: header.type || 'text/plain; charset=utf-8'});
 
-			const bodyEnd = headEnd + bodyLen + 5;
+			const bodyBlob  = new Blob([bodySlice], {type: header.mime || 'text/plain; charset=utf-8'});
+			const bodyEnd   = headEnd + bodyLen + 5;
 
-			const signatureLen   = new Uint32Array(buffer.slice(bodyEnd, bodyEnd + 4))[0];
-			const signatureSlice = buffer.slice(bodyEnd + 5, bodyEnd + signatureLen + 5);
-			const signatureBlob  = new Blob([signatureSlice], {type: 'text/plain; charset=utf-8'});
+			const signatureLen    = new Uint32Array(buffer.slice(bodyEnd, bodyEnd + 4))[0];
 
-			// (new Blob([buffer], {type: 'text/plain; charset=utf-8'})).text().then(t => console.log(t));
+			const signatureSlice  = buffer.slice(bodyEnd + 5, bodyEnd + signatureLen + 5);
+			const signatureData   = signatureSlice.slice(30,-29);
 
-			const signatureData  = signatureSlice.slice(30,-29);
-			const signatureBlob2 = new Blob([signatureData], {type: 'text/plain; charset=utf-8'});
+			const signatureBlob   = new Blob([signatureData],  {type: 'text/plain; charset=utf-8'});
+			const signatureBlob2  = new Blob([signatureSlice], {type: 'text/plain; charset=utf-8'});
 
-			return signatureBlob2.text().then(signature => {
+			return signatureBlob.text().then(signature => {
 
-				const decoded = window.atob(signature);
+				return fetch('data:application/sycamore;base64,' + signature)
+				.then(response => response.arrayBuffer())
+				.then(decoded => {
 
-				const segments = {
-					header: headSlice
-					, body: bodySlice
-					, message:   buffer.slice(0, bodyEnd)
-					, signature: this.stringTobuffer(decoded)
-				};
+					const segments = {
+						signature: decoded
+						, message: buffer.slice(0, bodyEnd)
+						, header:  headSlice
+						, body:    bodySlice
+					};
 
-				const body = header.type.substr(0,4) === 'text'
-					? bodyBlob.text()
-					: URL.createObjectURL(bodyBlob);
+					const body = header.mime.substr(0,4) === 'text'
+						? bodyBlob.text()
+						: URL.createObjectURL(bodyBlob);
 
-				const results = [
-					header
-					, body
-					, signatureBlob.text()
-					, segments
-				];
+					const results = [
+						header
+						, body
+						, signatureBlob2.text()
+						, segments
+					];
 
-				return Promise.all(results);
-
+					return Promise.all(results);
+				});
 			});
 
 		}).then(([header, body, signature, segments])=>{
@@ -189,19 +184,7 @@ export class MessageModel extends Model {
 
 			model.consume(skeleton);
 
-			console.log( model );
-
 			return model;
 		});
-	}
-
-	static stringTobuffer(str)
-	{
-		const buf = new ArrayBuffer(str.length);
-		const bufView = new Uint8Array(buf);
-		for (let i = 0, strLen = str.length; i < strLen; i++) {
-		bufView[i] = str.charCodeAt(i);
-		}
-		return buf;
 	}
 }

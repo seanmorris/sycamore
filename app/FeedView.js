@@ -2,7 +2,12 @@ import { Bindable } from 'curvature/base/Bindable';
 import { View } from 'curvature/base/View';
 import { Model } from 'curvature/model/Model';
 
+import { MessageView } from './MessageView';
 import { MessageModel } from './MessageModel';
+
+import { MessageLinkView } from './MessageLinkView';
+import { MessageImageView } from './MessageImageView';
+import { MessageYoutubeView } from './MessageYoutubeView';
 
 import { UserModel } from './UserModel';
 import { UserDatabase } from './UserDatabase';
@@ -48,7 +53,7 @@ export class FeedView extends View
 
 				const [messageTime, messageUrl] = messageLine.split(/\s/);
 
-				this.loadMessage(messageUrl);				
+				this.loadMessage(messageUrl);
 			}
 		});
 	}
@@ -68,45 +73,43 @@ export class FeedView extends View
 			return;
 		}
 
-		const short = message.header.type.substr(0, 10) === 'text/plain'
-			? message.body.substr(0, 140)
-			: message.body;
+		const mime = message.header.mime.split(/[\/\s]/);
+		const type = mime[0] === 'text'
+			? message.name.split('.').pop()
+			: mime[0];
 
-		const full = message.body;
+		switch(type)
+		{
+			case 'image':
+				this.args.posts.push(new MessageImageView(message));
+				break;
 
-		const image = message.header.type.substr(0, 6) === 'image/'
-			? message.body
-			: null;
+			case 'url':
+				const url = new URL(message.body);
 
-		const viewArgs = Bindable.make({
-			name:        message.name
-			, uid:       message.header.uid
-			, type:      message.header.type
-			, time:      new Date( message.header.issued * 1000 )
-			, timecode:  message.header.issued
-			, author:    message.header.author
-			, authority: message.header.authority
-			, short
-			, full
-			, image
-		});
+				switch(url.host)
+				{
+					case 'youtube.com':
+					case 'www.youtube.com':
 
-		message.bindTo('verified', v => {
-			if(v === true)
-			{
-				viewArgs.verified = 'verified';
-			}
-			else if(v === false)
-			{
-				viewArgs.verified = 'verify-failed';
-			}
-			else if(v === null)
-			{
-				viewArgs.verified = 'verify-pending';
-			}
-		});
+						message.videoStart = parseInt(url.searchParams.get('t')) || 0;
+						message.videoCode  = url.searchParams.get('v');
 
-		this.args.posts.push(viewArgs);
+						this.args.posts.push(new MessageYoutubeView(message));
+						break;
+
+					default:
+						this.args.posts.push(new MessageLinkView(message));
+						break;
+				}
+				break;
+
+			default:
+				this.args.posts.push(new MessageView(message));
+				break;
+		}
+
+
 
 		this.postSet.add(message.url);
 	};
@@ -139,6 +142,8 @@ export class FeedView extends View
 
 	follow(event, post)
 	{
+		return;
+
 		const openDb    = UserDatabase.open('users', 1);
 		const fetchCard = fetch(post.authority + '/contact-card.json').then(r => r.json());
 

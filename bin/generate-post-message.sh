@@ -22,7 +22,7 @@ USER_ID=$(shasum -a256 docs/sycamore.pub  | cut -d " " -f 1);
 TYPE=$(file -ib --mime-type ${INPUT});
 NOW=$(date +%s);
 
-REQUEST=post
+ASSERTS=post
 
 test -f $INPUT || exit 1;
 
@@ -37,11 +37,11 @@ cat << EOF > ${OUTPUT}.HEAD
 	, "name":    "${BASE_INPUT}"
 	, "author":  "${AUTHOR}"
 	, "uid":     "${USER_ID}"
-	, "request": "${REQUEST}"
-	, "type":    "${TYPE}"
+	, "mime":    "${TYPE}"
 	, "issued":  ${NOW}
+	, "topics:": []
+	, "asserts": "${ASSERTS}"
 	, "respond": null
-	, "topic:":  []
 }
 EOF
 
@@ -77,7 +77,7 @@ echo '-----END RSA SIGNATURE-----' >> ${OUTPUT}.SIGN;
 
 cat ${OUTPUT}.SIGN >> ${OUTPUT};
 
-jq -Rs '.' ${OUTPUT} | curl 'https://backend.warehouse.seanmorr.is/publish/sycamore.seanmorr.is::posts' \
+cat ${OUTPUT} | base64 -w0 | curl 'https://backend.warehouse.seanmorr.is/publish/sycamore.seanmorr.is::posts' \
   -H 'origin: https://warehouse.seanmorr.is' \
   -H 'content-type: undefined' \
   -X POST --data-binary @-

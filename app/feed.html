@@ -7,41 +7,4 @@
 
 </section>
 
-<ul class = "messages" cv-each = "posts:post">
-
-	<li class = "[[post.verified]]" data-type = "[[post.type]]">
-		
-		<section class = "author">
-			<div class = "avatar"></div>
-			<span class = "author">
-				<a cv-link = "user/[[post.uid]]">[[post.author]]</a>
-				<div class = "verify icon"></div>
-			</span>
-		</section>
-		
-		<section>
-			<small title = "[[post.timecode]]">[[post.id]] [[post.time]]</small>
-		</section>
-		
-		<section>
-			<span class = "body short">[[post.short]]</span>
-			<!-- <span class = "body full">[[post.full]]</span> -->
-			<span class = "body image"><img src = "[[post.image]]"></span>
-		</section>
-		
-		<section class = "reaction-bar">
-			<a cv-link>Reply</a>
-			 - <a cv-link>Like</a>
-			 - <a cv-link>Pay</a>
-			 - <a cv-link cv-on = "click:follow(event, post)">Follow</a>
-		</section>
-		
-		<section>
-			<a cv-link = "/messages/[[post.name]]">
-				[[post.name]]
-				<img class = "icon" src = "/go.svg" />
-			</a>
-		</section>
-	
-	</li>
-</ul>
+<ul class = "messages" cv-each = "posts:post">[[post]]</ul>
