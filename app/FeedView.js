@@ -7,6 +7,8 @@ import { MessageModel } from './MessageModel';
 
 import { MessageLinkView } from './MessageLinkView';
 import { MessageImageView } from './MessageImageView';
+import { MessageAudioView } from './MessageAudioView';
+import { MessageVideoView } from './MessageVideoView';
 import { MessageYoutubeView } from './MessageYoutubeView';
 
 import { UserModel } from './UserModel';
@@ -82,6 +84,14 @@ export class FeedView extends View
 		{
 			case 'image':
 				this.args.posts.push(new MessageImageView(message));
+				break;
+
+			case 'video':
+				this.args.posts.push(new MessageVideoView(message));
+				break;
+
+			case 'audio':
+				this.args.posts.push(new MessageAudioView(message));
 				break;
 
 			case 'url':
