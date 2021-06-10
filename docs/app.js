@@ -7281,60 +7281,6 @@ var FeedView = /*#__PURE__*/function (_View) {
       });
       return putter;
     }
-  }, {
-    key: "follow",
-    value: function follow(event, post) {
-      return;
-
-      var openDb = _UserDatabase.UserDatabase.open('users', 1);
-
-      var fetchCard = fetch(post.authority + '/contact-card.json').then(function (r) {
-        return r.json();
-      });
-      Promise.all([openDb, fetchCard]).then(function (_ref) {
-        var _ref2 = _slicedToArray(_ref, 2),
-            database = _ref2[0],
-            contactCard = _ref2[1];
-
-        var query = {
-          store: 'users',
-          index: 'uid',
-          range: post.uid,
-          type: _UserModel.UserModel
-        };
-        return database.select(query).one().then(function (result) {
-          var record = result.record;
-
-          if (!record) {
-            var user = _UserModel.UserModel.from(contactCard);
-
-            database.insert('users', user);
-          } else {
-            record.consume(contactCard);
-            database.update('users', record);
-          }
-
-          var query = {
-            store: 'users',
-            index: 'uid',
-            type: _UserModel.UserModel
-          };
-          return database.select(query).each(function (record) {
-            console.log(record);
-            return record;
-          });
-        }).then(function (profiles) {
-          console.log(profiles); // github.get('docs/syndicating.json').then(original => {
-          // 	const profiles = this.args.profiles.filter(x=>x);
-          // 	return github.put({
-          // 		location: 'docs/syndicating.json'
-          // 		, data:   JSON.stringify(profiles, null, 4)
-          // 		, sha:    original.sha
-          // 	});
-          // });
-        });
-      });
-    }
   }]);
 
   return FeedView;
