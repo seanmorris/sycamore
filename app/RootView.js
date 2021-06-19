@@ -19,7 +19,7 @@ export class RootView extends View
 
 	matrixLoginClicked(event)
 	{
-		matrix.initSso('http://localhost:3333/');
+		matrix.initSso(location.origin);
 	}
 
 	githubLoginClicked(event)
