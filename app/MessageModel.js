@@ -2,7 +2,8 @@ import { Model } from 'curvature/model/Model';
 
 import { MessageDatabase } from './MessageDatabase';
 
-export class MessageModel extends Model {
+export class MessageModel extends Model
+{
 	
 	verified = null;
 

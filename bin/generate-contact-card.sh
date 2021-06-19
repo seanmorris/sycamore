@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-set -euxo pipefail;
+set -euo pipefail;
 
 test -f .env && {
-	>&2 echo "Loading .env file.";
 	set -o allexport;
 	source .env;
 	set +o allexport
@@ -11,18 +10,21 @@ test -f .env && {
 	>&2 echo "Notice: .env file not found.";
 }
 
-USER_ID=$(shasum -a256 .ssh/sycamore.pub  | cut -d " " -f 1);
-OUTPUT=docs/contact-card.json
+[[ ${DEBUG:-0} -eq 1 ]] && {
+	set -x;
+}
 
-cat << EOF > ${OUTPUT}
+USER_ID=$(shasum -a256 .ssh/private-key.pem  | cut -d " " -f 1);
+
+cat << EOF
 {
-	"name":  "${AUTHOR}"
-	, "uid": "${USER_ID}"
-	, "url": "${STATIC_HOSTNAME}"
-	, "img": "${STATIC_HOSTNAME}/avatar.jpg"
-	, "hub": "https://hub.sycamore.seanmorr.is/"
-	, "key": "$(cat .ssh/sycamore.pub)"
+	"name":     "${AUTHOR}"
 	, "issued": "$(date +%s)"
 	, "about":  "Tantus labor non sit casus."
+	, "uid":    "${USER_ID}"
+	, "url":    "${STATIC_ORIGIN}"
+	, "img":    "${STATIC_ORIGIN}/avatar.jpg"
+	, "key":    "${STATIC_ORIGIN}/public-key.pem"
+	, "hub":    "${HUB_ORIGIN}"
 }
 EOF

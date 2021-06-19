@@ -39,3 +39,11 @@ exports.hooks = {
 		)
 	}
 };
+exports.npm = {
+	styles: {
+		codemirror: [
+			"lib/codemirror.css",
+			"theme/elegant.css",
+		]
+	}
+};

@@ -2,7 +2,6 @@
 set -euxo pipefail;
 
 test -f .env && {
-	>&2 echo "Loading .env file.";
 	set -o allexport;
 	source .env;
 	set +o allexport
@@ -18,7 +17,7 @@ FEED_DIR=docs/feeds/`date +%Y-%m`/`date +%d`;
 mkdir -p $FEED_DIR;
 
 git diff HEAD~1 --name-only messages/ | while read NAME; do {
-	STATIC_HOSTNAME=${STATIC_HOSTNAME} \
+	STATIC_ORIGIN=${STATIC_ORIGIN} \
 	PRIVATE_KEY=${PRIVATE_KEY} \
 		bash bin/generate-post-message.sh ${NAME};
 }; done;

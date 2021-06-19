@@ -1,6 +1,6 @@
 <section cv-if = "showForm">
 
-	<form class = "post" cv-on = "submit:createPost(event)">
+	<form class = "post" cv-on = "submit:createPost(event); drop:fileDropped(event):c; dragover:fileDragged(event):c">
 		<input type = "text" placeholder = "Write a post!" cv-bind = "inputPost" />
 		<input type = "submit" />
 	</form>

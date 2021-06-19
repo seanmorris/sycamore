@@ -2,7 +2,6 @@
 set -euxo pipefail;
 
 test -f .env && {
-	>&2 echo "Loading .env file.";
 	set -o allexport;
 	source .env;
 	set +o allexport

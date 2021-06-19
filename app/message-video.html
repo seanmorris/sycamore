@@ -1,6 +1,6 @@
 <li class = "[[verified|verifiedClass]]" data-type = "[[header.mime]]">
 	<section class = "author">
-		<div class = "avatar" style = "--avatar: url([[avatar]])"></div>
+		<div class = "avatar"></div>
 		<span class = "author">
 			<a cv-link = "user/[[uid]]">[[header.author]]</a>
 			<div class = "verify icon"></div>
@@ -12,8 +12,10 @@
 	</section>
 
 	<section>
-		<span class = "body text short">[[body]]</span>
-		<!-- <pre>[[source]]</pre> -->
+		<span class = "body video">
+			[[body]]
+			<video controls mute autoplay loop src = "[[url]]"></video>
+		</span>
 	</section>
 
 	<section class = "reaction-bar">
@@ -24,7 +26,7 @@
 	</section>
 
 	<section>
-		<a cv-link = "/messages/[[event_id]]">
+		<a cv-link = "/messages/[[name]]">
 			[[name]]
 			<img class = "icon" src = "/go.svg" />
 		</a>

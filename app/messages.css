@@ -17,6 +17,7 @@ ul.messages li {
 	padding: 1em;
 	border:  1px solid rgba(0,0,0,0.5);
 	background-color: rgba(255,255,255,0.89);
+	overflow: hidden;
 }
 
 form.post,
@@ -64,24 +65,34 @@ div.avatar {
 	display: inline-block;
 	border: 1px solid black;
 	border-radius: 50%;
-	background-image: url(/avatar.jpg);
+	background-image: var(--avatar, url('/avatar.jpg'));
 	background-size: contain;
 	background-repeat: no-repeat;
 	background-position: center;
-	width: 1.75em;
-	height: 1.75em;
+	width: 2.75em;
+	height: 2.75em;
 }
 
 section.author {
 	display: flex;
 	flex-direction: row;
-	align-content: flex-end;
+	align-content: flex-start;
+	/*justify-content: center;*/
 	font-weight: bold;
 }
 
 span.author {
-	line-height: 2rem;
 	margin-left: 0.5rem;
+}
+
+span.author > *{
+	line-height: 2.75em;
+}
+
+span.author a {
+	display: block;
+	margin-top: auto;
+	margin-bottom: auto;
 }
 
 span.author,

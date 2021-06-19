@@ -1,0 +1,9 @@
+.page-settings {
+	display: flex;
+	flex-direction: column;
+}
+
+.page-settings textarea {
+	resize: none;
+	flex: 1;
+}

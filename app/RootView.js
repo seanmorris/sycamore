@@ -1,6 +1,9 @@
 import { View } from 'curvature/base/View';
 
 import { UserList } from './UserList';
+import { Matrix } from './Matrix';
+
+const matrix = new Matrix;
 
 export class RootView extends View
 {
@@ -12,6 +15,11 @@ export class RootView extends View
 
 		this.args.profileName  = 'Sycamore';
 		this.args.profileTheme = 0 ? 'red-dots' : 'maple-tree';
+	}
+
+	matrixLoginClicked(event)
+	{
+		matrix.initSso('http://localhost:3333/');
 	}
 
 	githubLoginClicked(event)

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euxo pipefail;
+set -euo pipefail;
 
 test -f .env && {
 	set -o allexport;
@@ -10,51 +10,62 @@ test -f .env && {
 	>&2 echo "Notice: .env file not found.";
 }
 
+[[ ${DEBUG:-0} -eq 1 ]] && {
+	set -x;
+}
+
 INPUT=$1;
 
 [[ -f ${INPUT} ]] || exit;
 
-BASE_INPUT=${1#messages/};
-OUTPUT=docs/messages/${BASE_INPUT}.smsg;
+
 PUBLIC_KEY_URL=${STATIC_ORIGIN}/sycamore.pkcs8;
+BASE_INPUT=${1#messages/};
 USER_ID=$(shasum -a256 docs/sycamore.pub  | cut -d " " -f 1);
 TYPE=$(file -ib --mime-type ${INPUT});
 NOW=$(date +%s);
 
 ASSERTS=post
 
+[[ $# -gt 1 ]] && {
+	ASSERTS=$2;
+}
+
 test -f $INPUT || exit 1;
 
-mkdir -p $(dirname $OUTPUT);
+# mkdir -p $(dirname $OUTPUT);
 
 >&2 echo "Generating the header.";
 
-cat << EOF > ${OUTPUT}.HEAD
+TEMP_DIR=$(mktemp -d -p ./tmp)
+OUTPUT=$(mktemp -p ${TEMP_DIR});
+HEADER_FILE=$(mktemp -p ${TEMP_DIR});
+SIGNATURE_FILE=$(mktemp -p ${TEMP_DIR});
+
+cat << EOF > ${HEADER_FILE}
 {
 	"authority": "${STATIC_ORIGIN}"
-	, "key":     "${PUBLIC_KEY_URL}"
-	, "name":    "${BASE_INPUT}"
 	, "author":  "${AUTHOR}"
+	, "asserts": "${ASSERTS}"
+	, "respond": null
+	, "name":    "${BASE_INPUT}"
+	, "key":     "${PUBLIC_KEY_URL}"
 	, "uid":     "${USER_ID}"
 	, "mime":    "${TYPE}"
 	, "issued":  ${NOW}
 	, "topics:": []
-	, "asserts": "${ASSERTS}"
-	, "respond": null
 }
 EOF
 
->&2 echo "Starting output...";
-
 printf '🍁\n' > ${OUTPUT};
 
->&2 echo "Measure and add the header...";
+>&2 echo "Measure and append the header...";
 
-(wc -c  < ${OUTPUT}.HEAD | perl -lpe '$_=pack "L",$_') >> ${OUTPUT};
+(wc -c  < ${HEADER_FILE} | perl -lpe '$_=pack "L",$_') >> ${OUTPUT};
 
-cat ${OUTPUT}.HEAD >> ${OUTPUT};
+cat ${HEADER_FILE} >> ${OUTPUT};
 
->&2 echo "Measure and add the original message...";
+>&2 echo "Measure and append the original message...";
 
 (wc -c  < ${INPUT} | perl -lpe '$_=pack "L",$_') >> ${OUTPUT};
 
@@ -62,19 +73,19 @@ cat ${INPUT} >> ${OUTPUT};
 
 >&2 echo "Generate the signature.";
 
-echo '-----BEGIN RSA SIGNATURE-----' > ${OUTPUT}.SIGN;
+echo '-----BEGIN RSA SIGNATURE-----' > ${SIGNATURE_FILE};
 
 openssl dgst -sha1 -sign ${PRIVATE_KEY} ${OUTPUT} \
 	| openssl base64 \
-	>> ${OUTPUT}.SIGN;
+	>> ${SIGNATURE_FILE};
 
-echo '-----END RSA SIGNATURE-----' >> ${OUTPUT}.SIGN;
+echo '-----END RSA SIGNATURE-----' >> ${SIGNATURE_FILE};
 
->&2 echo "Measure and add the signature...";
+>&2 echo "Measure and append the signature...";
 
-(wc -c  < ${OUTPUT}.SIGN | perl -lpe '$_=pack "L",$_') >> ${OUTPUT};
+(wc -c  < ${SIGNATURE_FILE} | perl -lpe '$_=pack "L",$_') >> ${OUTPUT};
 
-cat ${OUTPUT}.SIGN >> ${OUTPUT};
+cat ${SIGNATURE_FILE} >> ${OUTPUT};
 
 cat ${OUTPUT} | base64 -w0 | curl 'https://backend.warehouse.seanmorr.is/publish/sycamore.seanmorr.is::posts' \
   -H 'origin: https://warehouse.seanmorr.is' \
@@ -83,6 +94,10 @@ cat ${OUTPUT} | base64 -w0 | curl 'https://backend.warehouse.seanmorr.is/publish
 
 >&2 echo "Cleaning up...";# 
 
-rm ${OUTPUT}.HEAD ${OUTPUT}.SIGN;
+cat ${OUTPUT};
+
+rm ${HEADER_FILE} ${SIGNATURE_FILE} ${OUTPUT};
+
+rmdir ${TEMP_DIR};
 
 >&2 echo "Done.";# 
