@@ -17,10 +17,27 @@
 	</section>
 
 	<section class = "reaction-bar">
-		<a cv-link>Reply</a>
-		 - <a cv-link>Like</a>
-		 - <a cv-link>Pay</a>
-		 - <a cv-link>Follow</a>
+		[[likes]] 👍 <a cv-link cv-on = "click:createLike(event)">Like</a>
+		 - <a cv-link cv-on = "click:toggleComments()">Reply</a>
+		 <!-- - <a cv-link>Pay</a>
+		 - <a cv-link>Follow</a> -->
+	</section>
+
+	<section class = "comments" cv-if = "showComments">
+		<form cv-on = "submit:createComment(event)">
+			<img class = "icon" src = "/x.svg" cv-on = "click:toggleComments()" />
+			<input type = "text" cv-bind = "commentInput" />
+			<input type = "submit" value = "post" />
+		</form>
+		<ul class = "comments" cv-each = "comments:comment:c">
+			<li>
+				<div class = "text">
+					<span class = "author">[[comment.sender]]</span><br />
+					<span class = "body">[[comment.body]]</span>
+				</div>
+				<div class = "avatar" style = "--avatar: url([[comment.image]])"></div>
+			</li>
+		</ul>
 	</section>
 
 	<section>

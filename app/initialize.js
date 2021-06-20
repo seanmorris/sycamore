@@ -1,3 +1,4 @@
+import { Bindable } from 'curvature/base/Bindable';
 import { Router } from 'curvature/base/Router';
 
 import { RootView } from './RootView';
@@ -5,7 +6,6 @@ import { FeedView } from './FeedView';
 
 import { UserView } from './UserView';
 import { UserModel } from './UserModel';
-import { UserDatabase } from './UserDatabase';
 
 import { MessageModel } from './MessageModel';
 
@@ -17,68 +17,44 @@ import { EventDatabase } from './matrix/EventDatabase';
 
 import { SettingsView } from './ui/SettingsView';
 
+import { Sycamore } from './Sycamore';
+
 Object.defineProperty(window, 'matrix', {value: new Matrix});
-
-const view = new RootView;
-
-UserDatabase.syncUsers();
 
 const routes = {
 	'': args => {
 		const feed = new FeedView({...args, showForm: true});
-		
 		feed.loadFeeds();
-
 		return feed;
 	}
 
 	, 'settings': SettingsView
 
+	, 'my-feed': () => {
+
+		Sycamore.getSettings().then(settings => {
+			Router.go(`/feed/${settings.privateFeed}`);
+		});
+
+	}
+
 	, 'feed/%room_id': args => {
-
 		const feed = new FeedView(args);
-
 		feed.loadFeeds();
-
 		return feed;
 	}
 
-	// , 'messages/%mid': args => {
-
-	// 	const feedView = new FeedView(args);
-
-	// 	MessageModel.fromUrl('/messages/' + args.mid + '.smsg').then(message => {
-	// 		feedView.displayPost(message);
-	// 	});
-
-	// 	return feedView;
-
-	// }
 	, 'user/%uid': args => new UserView(args)
 	, 'warehouse': args => new WarehouseConsole(args)
 };
 
-Router.listen(view, routes);
-
-if(Router.query.loginToken)
-{
-	matrix.completeSso(Router.query.loginToken);
-}
-
-view.listen(
-	document
-	, 'DOMContentLoaded'
-	, event => view.render(document.body)
-	, {once: true}
-);
-
-const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
-
-const token = JSON.parse(tokenJson);
+const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
 
 let getToken = null;
 
 let isGuest = false;
+
+matrix.addEventListener('login', () => isGuest = false);
 
 if(token)
 {
@@ -91,9 +67,29 @@ else
 	isGuest  = true;
 }
 
+const view = new RootView;
+
+Router.listen(view, routes);
+
+if(Router.query.loginToken)
+{
+	matrix.completeSso(Router.query.loginToken);
+}
+else
+{
+	view.listen(
+		document
+		, 'DOMContentLoaded'
+		, event => view.render(document.body)
+		, {once: true}
+	);
+}
+
 const getDatabase = EventDatabase.open('events', 1);
 
 Promise.all([getDatabase, getToken]).then(([database, access_token]) => {
+
+	Sycamore.checkFeeds(token.user_id);
 
 	matrix.addEventListener('matrix-event', throwEvent => {
 		const event = MatrixEvent.from(throwEvent.detail);
@@ -101,11 +97,19 @@ Promise.all([getDatabase, getToken]).then(([database, access_token]) => {
 		const index = 'event_id';
 		const range = event.event_id;
 
-		database.select({store, index, range}).then(res => {
-			res.index || database.insert('events', event);
+		database.select({store, index, range}).one().then(res => {
+			if(res.index)
+			{
+				res.record.consume(event);
+
+				database.update('events', res.record);
+			}
+			else
+			{
+				database.insert('events', event);
+			}
 		});
 	});
-
 
 	if(isGuest)
 	{
@@ -123,54 +127,69 @@ Promise.all([getDatabase, getToken]).then(([database, access_token]) => {
 
 		Object.entries(res.rooms.join).forEach(([room,state]) => {
 
-			if(state && state.timeline && state.timeline.events)
+			if(!state || !state.timeline)
 			{
-				state.timeline.events.forEach(chunk => {
-
-					chunk.room_id = room;
-
-					const event = MatrixEvent.from(chunk);
-
-					const store = 'events';
-					const index = 'event_id';
-					const range = event.event_id;
-					const type  = MatrixEvent;
-
-					database.select({store, index, range, type}).one().then(res => {
-
-						if(res.index)
-						{
-							res.record.consume(chunk);
-
-							database.update('events', res.record);
-						}
-						else
-						{
-
-							database.insert('events', event);
-						}
-					});
-				});
+				return;
 			}
 
-			if(state && state.timeline && state.timeline.prev_batch)
+			if(state.timeline.events)
 			{
-				matrix.syncRoomHistory(
-					room
-					, state.timeline.prev_batch
-					, chunk => {
-						const event = MatrixEvent.from(chunk);
+				return;
+			}
 
-						const store = 'events';
-						const index = 'event_id';
-						const range = event.event_id;
+			state.timeline.events.forEach(chunk => {
+				chunk.room_id = room;
 
-						database.select({store, index, range}).then(res => {
-							res.index || database.insert('events', event);
-						});
+				const event = MatrixEvent.from(chunk);
+
+				const store = 'events';
+				const index = 'event_id';
+				const range = event.event_id;
+				const type  = MatrixEvent;
+
+				database.select({store, index, range, type}).one().then(res => {
+					if(res.index)
+					{
+						res.record.consume(chunk);
+
+						database.update('events', res.record);
 					}
-				);
+					else
+					{
+						database.insert('events', event);
+					}
+				});
+			});
+
+			if(!state.timeline.prev_batch)
+			{
+				return;
 			}
+
+			matrix.syncRoomHistory(
+				room
+				, state.timeline.prev_batch
+				, chunk => {
+					// const event = MatrixEvent.from(chunk);
+
+					// const store = 'events';
+					// const index = 'event_id';
+					// const range = event.event_id;
+
+					// database.select({store, index, range}).then(res => {
+					// 	if(res.index)
+					// 	{
+					// 		res.record.consume(chunk);
+
+					// 		database.update('events', res.record);
+					// 	}
+					// 	else
+					// 	{
+					// 		database.insert('events', event);
+					// 	}
+					// });
+				}
+			);
 		});
 	});
 });

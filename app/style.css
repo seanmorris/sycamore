@@ -109,12 +109,15 @@ img.icon {
 }
 
 form.post,
-ul.messages li {
+ul.messages > li {
 	backdrop-filter: blur(10px);
 }
 
 form.post input {
 	padding: 0.25em;
+}
+
+form.post input[type="text"] {
 }
 
 form.post input[type="submit"],
@@ -126,7 +129,7 @@ form.post input[type="button"] {
 	font-size: 0.65em;
 	font-weight: bold;
 	border: 0;
-	border-radius: 5px;
+	/*border-radius: 5px;*/
 	padding-left: 0.5em;
 	padding-right: 0.5em;
 }

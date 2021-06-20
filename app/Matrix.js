@@ -14,6 +14,9 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 		this.baseUrl   = 'https://matrix.org/_matrix';
 		this.clientUrl = `${this.baseUrl}/client/r0`;
 		this.mediaUrl  = `${this.baseUrl}/media/r0`;
+
+		this.mediaCache = new Map();
+		this.profileCache = new Map();
 	}
 
 	initSso(redirectUri)
@@ -30,8 +33,6 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 
 			const request = JSON.parse(event.data);
 
-			console.log(request);
-
 			if(request.type !== 's.sso.complete')
 			{
 				return;
@@ -39,7 +40,7 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 
 			sessionStorage.setItem('matrix:access-token', JSON.stringify(request.data));
 
-			this.listenForServerEvents();
+			this.dispatchEvent(new CustomEvent('login'));
 		};
 
 		window.addEventListener('message', ssoListener);
@@ -88,15 +89,27 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 		return getToken;
 	}
 
-	listenForServerEvents()
+	getToken()
 	{
 		const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
 
 		const token = JSON.parse(tokenJson);
 
+		if(token)
+		{
+			return Promise.resolve(token);
+		}
+
+		return matrix.getGuestToken();
+	}
+
+	listenForServerEvents()
+	{
+		const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+
 		if(!token)
 		{
-			return;
+			return Promise.reject('No access token found.');
 		}
 
 		const listener = `${this.clientUrl}/events?access_token=${token.access_token}`;
@@ -106,57 +119,67 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 		.then(response => this.streamServerEvents(response));
 	}
 
-	listenForRoomEvents(room_id, from = '')
+	listenForRoomEvents(room_id, controller, from = '')
 	{
-		const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+		if(controller && controller.cancelled)
+		{
+			return;
+		}
 
-		const token = JSON.parse(tokenJson);
+		const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
 
 		if(!token)
 		{
-			return;
+			return Promise.reject('No access token found.');
 		}
 
 		const listener = `${this.clientUrl}/events?room_id=${room_id}&access_token=${token.access_token}&from=${from}`;
 
-		console.log(listener);
+		controller = controller || {cancelled: false};
 
 		fetch(listener)
 		.then(response => response.json())
-		.then(response => this.streamServerEvents(response, room_id));
+		.then(response => this.streamServerEvents(response, room_id, controller));
+
+		return controller;
 	}
 
-	getUserAvatar(userId)
+	getUserProfile(userId)
 	{
-		return fetch(`${this.clientUrl}/profile/${userId}`).then(response=>response.json());
+		if(this.profileCache.has(userId, getProfile))
+		{
+			return this.profileCache.get(userId, getProfile);
+		}
+
+		const getProfile = fetch(`${this.clientUrl}/profile/${userId}`).then(response=>response.json());
+
+		this.profileCache.set(userId, getProfile);
+
+		return getProfile;
 	}
 
-	getUserData(userId, type)
+	getUserData(type)
 	{
-		const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+		const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
 
-		const token = JSON.parse(tokenJson);
+		if(!token)
+		{
+			return Promise.reject('No access token found.');
+		}
+
+		return fetch(`${this.clientUrl}/user/${token.user_id}/account_data/${type}?access_token=${token.access_token}`).then(response => response.json());
+	}
+
+	putUserData(type, body)
+	{
+		const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
 
 		if(!token)
 		{
 			return;
 		}
 
-		return fetch(`${this.clientUrl}/user/${userId}/account_data/${type}?access_token=${token.access_token}`).then(response => response.json());
-	}
-
-	putUserData(userId, type, body)
-	{
-		const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
-
-		const token = JSON.parse(tokenJson);
-
-		if(!token)
-		{
-			return;
-		}
-
-		const endpoint = `${this.clientUrl}/user/${userId}/account_data/${type}?access_token=${token.access_token}`;
+		const endpoint = `${this.clientUrl}/user/${token.user_id}/account_data/${type}?access_token=${token.access_token}`;
 
 		return fetch(endpoint, {method: 'PUT', body}).then(response => {
 			if(!response.ok)
@@ -175,11 +198,20 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 
 	getMedia(mxcUrl)
 	{
+		if(this.mediaCache.has(mxcUrl))
+		{
+			return this.mediaCache.get(mxcUrl);
+		}
+
 		const url = new URL(mxcUrl);
 
-		return fetch(`${this.mediaUrl}/download/${url.pathname.substr(2)}`)
+		const getUrl = fetch(`${this.mediaUrl}/download/${url.pathname.substr(2)}`)
 		.then(response => Promise.all([response.arrayBuffer(), response.headers.get('Content-type')]))
 		.then(([buffer, type]) => URL.createObjectURL(new Blob([buffer], {type})));
+
+		this.mediaCache.set(mxcUrl, getUrl);
+
+		return getUrl;
 	}
 
 	postMedia(body, filename)
@@ -264,13 +296,11 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 
 	syncRoom(room_id, from = '')
 	{
-		const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
-
-		const token = JSON.parse(tokenJson);
+		const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
 
 		if(!token)
 		{
-			return Promise.resolve();
+			return Promise.reject('No access token found.');
 		}
 
 		const syncer = `${this.clientUrl}/rooms/${room_id}/messages?dir=b&room_id=${room_id}&access_token=${token.access_token}&from=${from}`;
@@ -286,20 +316,21 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 		});
 	}
 
-	streamServerEvents(chunkList, room_id)
+	streamServerEvents(chunkList, room_id, controller)
 	{
-		console.log(chunkList.end);
+		if(controller && controller.cancelled)
+		{
+			return;
+		}
 
 		if(room_id)
 		{
-			this.listenForRoomEvents(room_id, chunkList.end);
+			this.listenForRoomEvents(room_id, controller, chunkList.end);
 		}
 		else
 		{
 			this.listenForServerEvents();
 		}
-
-		console.log(chunkList);
 
 		chunkList.chunk && chunkList.chunk.forEach(event => {
 
@@ -329,5 +360,36 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 		}
 
 		return token.user_id;
+	}
+
+	createRoom(name, topic, visibility, initial_state = {})
+	{
+		const body = JSON.stringify({name, topic, visibility, initial_state});
+
+		const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+
+		if(!token)
+		{
+			return Promise.resolve();
+		}
+
+		const url = `${this.clientUrl}/createRoom?access_token=${token.access_token}`;
+
+		const method = 'POST';
+
+		return fetch(url, {body, method}).then(response => response.json());
+	}
+
+	joinRoom(room_id)
+	{
+		const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+
+		if(!token)
+		{
+			return Promise.reject('No access token found.');
+		}
+
+		fetch(`${this.clientUrl}/rooms/${room_id}/join?access_token=${token.access_token}`, {method:'POST'})
+		.then(response => response.json());
 	}
 }

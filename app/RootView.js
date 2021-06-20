@@ -1,9 +1,6 @@
 import { View } from 'curvature/base/View';
 
 import { UserList } from './UserList';
-import { Matrix } from './Matrix';
-
-const matrix = new Matrix;
 
 export class RootView extends View
 {

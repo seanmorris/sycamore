@@ -2,8 +2,67 @@ form.post,
 ul.messages {
 	width: 30em;
 	margin: auto;
+}
+
+ul.comments,
+ul.messages {
 	list-style: none;
 	padding-left: 0;
+}
+
+section.comments form {
+	display: flex;
+	flex-direction: row;
+}
+
+section.comments input[type="text"] {
+	flex: 1;
+}
+
+section.comments input[type="submit"] {
+	font-size: 0.65em;
+	border: 0;
+	border-radius: 0;
+	margin-left: 0.5em;
+	background-color: #222;
+	text-transform: uppercase;
+	font-weight: bold;
+	color: white;
+}
+
+section.comments span.author {
+	font-size: 0.75em;
+	font-weight: 600;
+}
+
+section.comments .icon {
+	height: 2em;
+	margin-left: 0;
+	margin-right: 0.5em;
+}
+
+ul.comments li {
+	padding-top: 1em;
+	padding-bottom: 1em;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-end;
+}
+
+ul.comments li div.text {
+	margin-top:    auto;
+	margin-bottom: auto;
+	margin-right:  1em;
+	margin-left:   1em;
+}
+
+ul.comments li:not(:first-child) {
+	border-bottom: 1px solid #ccc;
+}
+
+ul.comments {
+	display: flex;
+	flex-direction: column-reverse;
 }
 
 ul.messages {
@@ -12,7 +71,7 @@ ul.messages {
 }
 
 form.post,
-ul.messages li {
+ul.messages > li {
 	box-sizing: border-box;
 	padding: 1em;
 	border:  1px solid rgba(0,0,0,0.5);
@@ -21,17 +80,18 @@ ul.messages li {
 }
 
 form.post,
-ul.messages li {
+ul.messages > li {
 	margin-top: 2em;
 }
 
 ul.messages {
+	margin-top: 0em;
 	margin-bottom: 2em;
 }
 
 form.post,
 section.header,
-ul.messages li {
+ul.messages > li {
 	box-shadow: 0em 0.5em 0.5em rgba(0,0,0,0.45);
 }
 
@@ -52,11 +112,15 @@ form.post input[type="text"] {
 	flex; 1;
 }
 
-ul.messages li section:not(:last-child) {
+ul.messages > li section:not(:last-child) {
 	margin-bottom: 0.5rem;
 }
 
-ul.messages li section:last-child {
+ul.messages > li section.comments {
+	text-align: right;
+}
+
+ul.messages > li section:last-child {
 	text-align: right;
 	font-size: 0.75rem;
 }
@@ -96,7 +160,7 @@ span.author a {
 }
 
 span.author,
-ul.messages li span.body {
+ul.messages > li span.body {
 	font-family: sans;
 }
 
@@ -105,7 +169,7 @@ ul.messages span.body.text {
 	white-space: pre-wrap;
 }
 
-ul.messages li pre {
+ul.messages > li pre {
 	margin-bottom: 0;
 	margin-top: 0;
 }
@@ -118,34 +182,34 @@ section.reaction-bar a {
      color: blue;
 }
 
-ul.messages li span.author a {
+ul.messages > li span.author a {
 	text-decoration: none;
 	color: black;
 }
 
-ul.messages li.verify-failed span.author a:after {
+ul.messages > li.verify-failed span.author a:after {
 	content:  '?';
 }
 
-ul.messages li {
+ul.messages > li {
 	transition: opacity 0.5s ease-in, filter 0.25s ease-in;
 }
 
-ul.messages li.verify-pending {
+ul.messages > li.verify-pending {
 	opacity: 0.75;
 	filter: blur(1px);
 }
 
-ul.messages li.verify-failed {
+ul.messages > li.verify-failed {
 	background-color: rgba(128,64,64,0.75);
 	opacity: 0.95;
 }
 
-ul.messages li.verified {
+ul.messages > li.verified {
 	opacity: 1;
 }
 
-ul.messages li.verified .verify.icon {
+ul.messages > li.verified .verify.icon {
 	display: inline-block;
 	vertical-align: middle;
 	width: 1em;

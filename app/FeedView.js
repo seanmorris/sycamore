@@ -1,3 +1,4 @@
+import { Sycamore } from './Sycamore';
 import { Bindable } from 'curvature/base/Bindable';
 import { View } from 'curvature/base/View';
 import { Model } from 'curvature/model/Model';
@@ -16,16 +17,15 @@ import { UserDatabase } from './UserDatabase';
 
 import { Github } from './Github';
 
+import { Database } from 'curvature/model/Database';
 import { EventDatabase } from './matrix/EventDatabase';
 
 import { EventModel as MatrixEvent } from './matrix/EventModel';
 
-// const room_id = '!FIoireJEFPfTCUfUrL:matrix.org';
-// const room_id = '!KaJxaqzQsDrINmbMht:matrix.org';
-
 export class FeedView extends View
 {
 	template = require('feed.html');
+	listeners = new Map;
 	profiles = new Map;
 	postSet  = new Set;
 
@@ -37,102 +37,99 @@ export class FeedView extends View
 
 		this.args.room_id = this.args.room_id || '!KaJxaqzQsDrINmbMht:matrix.org';
 
-		const tokenJson = sessionStorage.getItem('matrix:access-token') || 'false';
+		this.selector = IDBKeyRange.bound(
+			[this.args.room_id, 'm.room.message', 0]
+			, [this.args.room_id, 'm.room.message', Infinity]
+		);
 
-		const token = JSON.parse(tokenJson);
+		this.args.showForm = false;
 
-		matrix.getRoomState(this.args.room_id).then(response => {
-			response
-				.filter(event => event.type === 'm.room.power_levels')
-				.forEach(event => {
+		if(this.args.room_id)
+		{
+			Promise.all([EventDatabase.open('events', 1), matrix.getToken()])
+			.then(([database, token])=>{
 
-					this.args.showForm = true;
+				if(this.args.room_id !== '!KaJxaqzQsDrINmbMht:matrix.org')
+				{
+					this.listen(matrix, 'login', () => this.afterLogin());
+					this.afterLogin();
+				}
 
-					if(!(token.user_id in event.content.users))
+				this.syncHistory( this.args.room_id );
+
+				database.addEventListener('write', dbEvent => {
+					if(dbEvent.detail.subType !== 'insert')
 					{
-						console.log('222')
-						this.args.showForm = false;
 						return;
 					}
-					// if(event.content.events['m.room.message'] > event.content.users_default)
-					// {
-					// 	console.log('333')
-					// 	this.args.showForm = false;
-					// 	return;
-					// }
-				})
-		});
 
-		console.log(this.args.room_id);
+					const event = dbEvent.detail.record;
 
+					if(event.room_id === undefined)
+					{
+						return;
+					}
+
+					const eventKey = [event.room_id, event.type, event.received];
+
+					if(!this.selector.includes(eventKey))
+					{
+						return;
+					}
+
+					const messageView = this.getEventView(event);
+
+					this.args.posts.push(messageView);
+				});
+
+				const controller = matrix.listenForRoomEvents(this.args.room_id);
+
+				this.onRemove(() => controller.cancelled = true);
+
+				this.listeners.set(this.args.room_id, controller);
+			});
+		}
+	}
+
+	syncHistory(roomId)
+	{
 		EventDatabase.open('events', 1).then(database => {
-			matrix.syncRoomHistory(this.args.room_id, '', event => {
+			matrix.syncRoomHistory(roomId, '', event => {
 				const store = 'events';
 				const index = 'event_id';
 				const range = event.event_id;
 				const type  = MatrixEvent;
 
 				database.select({store, index, range, type}).one().then(res => {
-
 					if(res.index)
 					{
-						res.record.consume(event);
-
 						database.update('events', res.record);
 					}
 					else
 					{
-
 						database.insert('events', MatrixEvent.from(event));
 					}
 				});
 			});
+		})
+	}
+
+	afterLogin()
+	{
+		const getToken = matrix.getToken();
+		const getState = matrix.getRoomState(this.args.room_id);
+
+		Promise.all([getToken, getState]).then(([token, response]) => {
+			response
+			.filter(event => event.type === 'm.room.power_levels')
+			.forEach(event => {
+
+				if(token.user_id in event.content.users)
+				{
+					this.args.showForm = true;
+				}
+			})
 		});
-
-		this.selector = IDBKeyRange.bound(
-			[this.args.room_id, 'm.room.message', 0]
-			, [this.args.room_id, 'm.room.message', Infinity]
-		);
-
-		this.listen(matrix, 'matrix-event', thrownEvent => {
-			const event = MatrixEvent.from(thrownEvent.detail);
-
-			const eventKey = [event.room_id, event.type, event.received];
-
-			if(this.selector.includes(eventKey))
-			{
-				const user_id = event.sender || event.user_id;
-
-				const messageView = new MessageView({
-					issued: event.origin_server_ts / 1000
-					, body: event.content.body
-					, header: Bindable.make({ author: user_id })
-					, avatar: '/avatar.jpg'
-				});
-
-				messageView.preserve = true;
-
-				this.args.posts.push(messageView);
-
-				this.onRemove(()=>messageView.remove());
-
-				this.getProfile(user_id).then(profile => {
-
-					if(!profile.avatar_url_local)
-					{
-						return;
-					}
-
-					messageView.args.avatar = profile.avatar_url_local;
-				});
-			}
-
-			const store = 'events';
-			const index = 'event_id';
-			const range = event.event_id;
-		});
-
-		matrix.listenForRoomEvents(this.args.room_id);
 	}
 
 	loadFeeds(feedUrl)
@@ -145,13 +142,13 @@ export class FeedView extends View
 
 			const direction = 'next';
 
+			const posts = [];
+
 			database.select({store, index, range, direction, limit}).each(event => {
 
 				const user_id = event.sender || event.user_id;
 
 				const messageView = this.getEventView(event);
-
-				this.args.posts.push(messageView);
 
 				this.getProfile(user_id).then(profile => {
 
@@ -166,6 +163,13 @@ export class FeedView extends View
 				messageView.preserve = true;
 
 				this.onRemove(()=>messageView.remove());
+
+				posts.push(messageView);
+
+			}).then(views => {
+
+				this.args.posts.push(...posts);
+
 			});
 		});
 	}
@@ -186,16 +190,12 @@ export class FeedView extends View
 					, avatar: '/avatar.jpg'
 					, eventId: event.event_id
 					, source:  JSON.stringify(event.content, null, 4)
+					, event
 				});
 
 				matrix.getMedia(event.content.url).then(localUrl => {
-
 					messageView.args.url = localUrl;
-
-					console.log(localUrl);
-
 				});
-
 				break;
 
 			case 'm.video':
@@ -206,16 +206,12 @@ export class FeedView extends View
 					, avatar: '/avatar.jpg'
 					, eventId: event.event_id
 					, source:  JSON.stringify(event.content, null, 4)
+					, event
 				});
 
 				matrix.getMedia(event.content.url).then(localUrl => {
-
 					messageView.args.url = localUrl;
-
-					console.log(localUrl);
-
 				});
-
 				break;
 
 			case 'm.image':
@@ -226,18 +222,13 @@ export class FeedView extends View
 					, avatar: '/avatar.jpg'
 					, eventId: event.event_id
 					, source:  JSON.stringify(event.content, null, 4)
+					, event
 				});
 
 				matrix.getMedia(event.content.url).then(localUrl => {
-
 					messageView.args.url = localUrl;
-
-					console.log(localUrl);
-
 				});
-
 				break;
-
 
 			default:
 				messageView = new MessageView({
@@ -247,13 +238,26 @@ export class FeedView extends View
 					, avatar: '/avatar.jpg'
 					, eventId: event.event_id
 					, source:  JSON.stringify(event.content, null, 4)
+					, event
 				});
+		}
+
+		if(event.content.sycamore
+			&& event.content.sycamore.public
+			&& !this.listeners.has(event.content.sycamore.public)
+		){
+			this.syncHistory(event.content.sycamore.public);
+
+			const controller = matrix.listenForRoomEvents(event.content.sycamore.public);
+
+			this.onRemove(() => controller.cancelled = true);
+
+			this.listeners.set(event.content.sycamore.public, controller);
 		}
 
 		messageView.preserve = true;
 
 		return messageView;
-
 	}
 
 	loadFeed(feed)
@@ -285,7 +289,7 @@ export class FeedView extends View
 		{
 			const profile = {};
 
-			getProfile = matrix.getUserAvatar(userId).then(response => {
+			getProfile = matrix.getUserProfile(userId).then(response => {
 
 				Object.assign(profile, response);
 
@@ -388,36 +392,30 @@ export class FeedView extends View
 	{
 		event.preventDefault();
 
-		// if(!this.args.inputPost)
-		// {
-		// 	return;
-		// }
+		Sycamore.getSettings().then(settings => {
+			const message = {
+				msgtype: 'm.text'
+				, body:  this.args.inputPost
+				, sycamore: {
+					profile:   'https://sycamore.seanmorr.is/'
+					, private: settings.privateFeed
+					, public:  settings.publicFeed
+				}
+			};
 
-		// const filename = `messages/post-${Date.now()}.md`;
+			return matrix.putEvent(this.args.room_id, 'm.room.message', message)
 
-		// const github = new Github('seanmorris/sycamore');
+		}).then(() => {
 
-		// const putter = github.put({
-		// 	data:       this.args.inputPost + "\n"
-		// 	, location: filename
-		// 	, message:  'Sycamore self-edit.'
-		// 	, branch:   'master'
-		// 	, sha:      ''
-		// });
+			this.args.inputPost = '';
 
-		// putter.then(() => this.args.inputPost = '');
-
-		// return putter;
+		});
 	};
 
 	fileDropped(event)
 	{
-		console.log(event);
-
 		event.preventDefault();
 		event.stopPropagation();
-
-		console.log(event.dataTransfer.items);
 
 		for(const item of event.dataTransfer.items)
 		{
@@ -430,7 +428,7 @@ export class FeedView extends View
 				case 'video':
 				case 'audio':
 					matrix.postMedia(file, file.name).then(response => {
-						matrix.putEvent('!KaJxaqzQsDrINmbMht:matrix.org', 'm.room.message', {
+						matrix.putEvent(this.args.room_id, 'm.room.message', {
 							msgtype: 'm.' + baseType
 							, body:  file.name
 							, url:   response.content_uri
@@ -454,10 +452,7 @@ export class FeedView extends View
 
 	fileDragged(event)
 	{
-		console.log(event);
-
 		event.preventDefault();
 		event.stopPropagation();
-
 	}
 }

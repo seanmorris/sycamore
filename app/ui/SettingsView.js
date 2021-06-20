@@ -47,14 +47,14 @@ export class SettingsView extends View
 
 		this.editor = editor;
 
-		matrix.getUserData(this.userId, 'sycamore.settings')
-		.then(response => {this.args.content = JSON.stringify(response || '{}', null, 2)})
+		matrix.getUserData('sycamore.settings')
+		.then(response => this.args.content = JSON.stringify(response || '{}', null, 2))
 		.catch(error => {console.log(error); this.args.content = '{}'});
 	}
 
 	save(event)
 	{
-		const args = [this.userId, 'sycamore.settings', this.args.content]
+		const args = ['sycamore.settings', this.args.content]
 
 		this.args.success = '';
 		this.args.error   = '';
