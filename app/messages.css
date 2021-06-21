@@ -45,7 +45,7 @@ ul.comments li {
 	padding-top: 1em;
 	padding-bottom: 1em;
 	display: flex;
-	flex-direction: row;
+	flex-direction: flex-start;
 	justify-content: flex-end;
 }
 
@@ -133,8 +133,14 @@ div.avatar {
 	background-size: contain;
 	background-repeat: no-repeat;
 	background-position: center;
-	width: 2.75em;
-	height: 2.75em;
+	width: 3em;
+	height: 3em;
+}
+
+section.comments div.avatar {
+	flex-shrink: 0;
+	width: 2.5em;
+	height: 2.5em;
 }
 
 section.author {

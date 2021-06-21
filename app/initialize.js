@@ -19,7 +19,9 @@ import { SettingsView } from './ui/SettingsView';
 
 import { Sycamore } from './Sycamore';
 
-Object.defineProperty(window, 'matrix', {value: new Matrix});
+Object.defineProperty(window, 'matrix',  {value: new Matrix});
+Object.defineProperty(window, 'webTorrent', {value: new WebTorrent});
+Object.defineProperty(window, 'webTorrentSeed', {value: new WebTorrent});
 
 const routes = {
 	'': args => {
@@ -96,8 +98,9 @@ Promise.all([getDatabase, getToken]).then(([database, access_token]) => {
 		const store = 'events';
 		const index = 'event_id';
 		const range = event.event_id;
+		const type  = MatrixEvent;
 
-		database.select({store, index, range}).one().then(res => {
+		database.select({store, index, range, type}).one().then(res => {
 			if(res.index)
 			{
 				res.record.consume(event);

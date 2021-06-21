@@ -196,6 +196,12 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 		}).then(response => response.json());
 	}
 
+	getMediaUrl(mxcUrl)
+	{
+		const url = new URL(mxcUrl);
+		return `${this.mediaUrl}/download/${url.pathname.substr(2)}`;
+	}
+
 	getMedia(mxcUrl)
 	{
 		if(this.mediaCache.has(mxcUrl))
@@ -203,9 +209,7 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 			return this.mediaCache.get(mxcUrl);
 		}
 
-		const url = new URL(mxcUrl);
-
-		const getUrl = fetch(`${this.mediaUrl}/download/${url.pathname.substr(2)}`)
+		const getUrl = fetch(this.getMediaUrl(mxcUrl))
 		.then(response => Promise.all([response.arrayBuffer(), response.headers.get('Content-type')]))
 		.then(([buffer, type]) => URL.createObjectURL(new Blob([buffer], {type})));
 

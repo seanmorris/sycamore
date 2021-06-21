@@ -35,60 +35,68 @@ export class FeedView extends View
 
 		this.args.posts = this.args.posts || [];
 
-		this.args.room_id = this.args.room_id || '!KaJxaqzQsDrINmbMht:matrix.org';
-
+		this.index = 'type+time';
 		this.selector = IDBKeyRange.bound(
-			[this.args.room_id, 'm.room.message', 0]
-			, [this.args.room_id, 'm.room.message', Infinity]
+			['m.room.message', 0]
+			, ['m.room.message', Infinity]
 		);
-
-		this.args.showForm = false;
 
 		if(this.args.room_id)
 		{
-			Promise.all([EventDatabase.open('events', 1), matrix.getToken()])
-			.then(([database, token])=>{
+			this.index = 'room_id+type+time';
+			this.selector = IDBKeyRange.bound(
+				[this.args.room_id, 'm.room.message', 0]
+				, [this.args.room_id, 'm.room.message', Infinity]
+			);
+		}
 
-				if(this.args.room_id !== '!KaJxaqzQsDrINmbMht:matrix.org')
-				{
-					this.listen(matrix, 'login', () => this.afterLogin());
-					this.afterLogin();
-				}
+		this.args.showForm = false;
+
+		Promise.all([EventDatabase.open('events', 1), matrix.getToken()])
+		.then(([database, token])=>{
+
+			if(this.args.room_id)
+			{
+				this.listen(matrix, 'login', () => this.afterLogin());
+				this.afterLogin();
 
 				this.syncHistory( this.args.room_id );
+			}
 
-				database.addEventListener('write', dbEvent => {
-					if(dbEvent.detail.subType !== 'insert')
-					{
-						return;
-					}
+			database.addEventListener('write', dbEvent => {
+				if(dbEvent.detail.subType !== 'insert')
+				{
+					return;
+				}
 
-					const event = dbEvent.detail.record;
+				const event = dbEvent.detail.record;
 
-					if(event.room_id === undefined)
-					{
-						return;
-					}
+				if(event.room_id === undefined)
+				{
+					return;
+				}
 
-					const eventKey = [event.room_id, event.type, event.received];
+				const eventKey = [event.room_id, event.type, event.received];
 
-					if(!this.selector.includes(eventKey))
-					{
-						return;
-					}
+				if(!this.selector || !this.selector.includes(eventKey))
+				{
+					return;
+				}
 
-					const messageView = this.getEventView(event);
+				const messageView = this.getEventView(event);
 
-					this.args.posts.push(messageView);
-				});
+				this.args.posts.push(messageView);
+			});
 
+			if(this.args.room_id)
+			{
 				const controller = matrix.listenForRoomEvents(this.args.room_id);
 
 				this.onRemove(() => controller.cancelled = true);
 
 				this.listeners.set(this.args.room_id, controller);
-			});
-		}
+			}
+		});
 	}
 
 	syncHistory(roomId)
@@ -135,8 +143,14 @@ export class FeedView extends View
 	loadFeeds(feedUrl)
 	{
 		EventDatabase.open('events', 1).then(database => {
+
+			if(!this.selector)
+			{
+				return;
+			}
+
 			const range = this.selector;
-			const index = 'room_id+type+time';
+			const index = this.index;
 			const store = 'events';
 			const limit = false;
 
@@ -225,9 +239,39 @@ export class FeedView extends View
 					, event
 				});
 
-				matrix.getMedia(event.content.url).then(localUrl => {
-					messageView.args.url = localUrl;
-				});
+				const getFromOrigin = setTimeout(()=>{
+					matrix.getMedia(event.content.url).then(localUrl => {
+						messageView.args.url = localUrl;
+						fetch(localUrl).then(response => response.arrayBuffer()).then(fileBuffer => {
+							const file = new File([fileBuffer], event.content.body, {type: event.content.info.type});
+							webTorrent.seed(file, torrent => console.log(torrent));
+							console.log(torrent.magnetURI);
+						});
+					});
+				}, 15000);
+
+				if(event.content.sycamore.magnet)
+				{
+					webTorrentSeed.add(event.content.sycamore.magnet, torrent => {
+						console.log(event.content.sycamore.magnet);
+						for(const file of torrent.files)
+						{
+							file.getBlobURL((error, url) => {
+								if(!error)
+								{
+									clearTimeout(getFromOrigin);
+									messageView.args.url = url;
+									return;
+								}
+								console.log(error);
+							});
+							break;
+						}
+						torrent.on('done', () => {
+						})
+					});
+				}
+
 				break;
 
 			default:
@@ -279,13 +323,13 @@ export class FeedView extends View
 
 	getProfile(userId)
 	{
-		let getProfile;
+		let getProfile = Promise.resolve({});
 
 		if(this.profiles.has(userId))
 		{
 			getProfile = Promise.resolve(this.profiles.get(userId));
 		}
-		else
+		else if(userId)
 		{
 			const profile = {};
 
@@ -422,30 +466,37 @@ export class FeedView extends View
 			const file = item.getAsFile();
 			const baseType = file.type.split('/')[0];
 
-			switch(baseType)
-			{
-				case 'image':
-				case 'video':
-				case 'audio':
-					matrix.postMedia(file, file.name).then(response => {
-						matrix.putEvent(this.args.room_id, 'm.room.message', {
-							msgtype: 'm.' + baseType
-							, body:  file.name
-							, url:   response.content_uri
-							, info: { type: file.type }
+			webTorrent.seed(file, torrent => {
+				console.log(torrent);
+				switch(baseType)
+				{
+					case 'image':
+					case 'video':
+					case 'audio':
+						matrix.postMedia(file, file.name).then(response => {
+							matrix.putEvent(this.args.room_id, 'm.room.message', {
+								msgtype: 'm.' + baseType
+								, sycamore: { magnet: torrent.magnetURI }
+								, body:  file.name
+								, url:   response.content_uri
+								, info: { type: file.type }
+							});
 						});
-					});
-					break
-				default:
-					matrix.postMedia(file, file.name).then(response => {
-						matrix.putEvent('!KaJxaqzQsDrINmbMht:matrix.org', 'm.room.message', {
-							msgtype: 'm.file'
-							, body:  file.name
-							, url:   response.content_uri
-							, info: { type: file.type }
+						break
+					default:
+						matrix.postMedia(file, file.name).then(response => {
+							matrix.putEvent(this.args.room_id, 'm.room.message', {
+								msgtype: 'm.file'
+								, sycamore: { magnet: torrent.magnetURI }
+								, body:  file.name
+								, url:   response.content_uri
+								, info: { type: file.type }
+							});
 						});
-					});
-			}
+				}
+
+			});
+
 
 		}
 	}

@@ -1,17 +1,20 @@
 {
-  "name": "brunch-app",
-  "description": "Brunch.io application",
-  "private": true,
-  "author": "Brunch",
+  "name": "sycamore",
+  "author": "Sean Morris",
   "version": "0.0.1",
+  "private": true,
+  "browser": {
+    "index.js": "app/index.js"
+  },
   "repository": "",
   "scripts": {
     "start": "brunch watch --server",
     "build": "brunch build --production"
   },
   "dependencies": {
-    "curvature": "^0.0.66-m",
-    "webtorrent": "^1.0.1"
+    "buffer": "^6.0.3",
+    "create-torrent": "^4.7.0",
+    "curvature": "^0.0.66-m"
   },
   "devDependencies": {
     "@babel/cli": "^7.8.4",
@@ -21,7 +24,7 @@
     "auto-reload-brunch": "^2",
     "babel-brunch": "^7.0.1",
     "babel-minify": "^0.5.1",
-    "brunch": "^3",
+    "brunch": "^4",
     "clean-css-brunch": "^3",
     "codemirror": "^5.58.2",
     "raw-brunch": "^1.0.2",
