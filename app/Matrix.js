@@ -1,9 +1,6 @@
 import { Mixin } from 'curvature/base/Mixin';
-
 import { EventTargetMixin } from 'curvature/mixin/EventTargetMixin';
-
 import { EventModel as MatrixEvent } from './matrix/EventModel';
-import { EventDatabase } from './matrix/EventDatabase';
 
 export class Matrix extends Mixin.with(EventTargetMixin)
 {
@@ -395,5 +392,30 @@ export class Matrix extends Mixin.with(EventTargetMixin)
 
 		fetch(`${this.clientUrl}/rooms/${room_id}/join?access_token=${token.access_token}`, {method:'POST'})
 		.then(response => response.json());
+	}
+
+	leaveRoom(room_id)
+	{
+		const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+
+		if(!token)
+		{
+			return Promise.reject('No access token found.');
+		}
+
+		fetch(`${this.clientUrl}/rooms/${room_id}/leave?access_token=${token.access_token}`, {method:'POST'})
+		.then(response => response.json());
+	}
+
+	whoAmI()
+	{
+		const token = JSON.parse(sessionStorage.getItem('matrix:access-token') || 'false');
+
+		if(!token)
+		{
+			return Promise.reject('No access token found.');
+		}
+
+		return fetch(`${this.clientUrl}/account/whoami?access_token=${token.access_token}`).then(response => response.json());
 	}
 }

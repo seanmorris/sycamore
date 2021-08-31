@@ -113,23 +113,100 @@ ul.messages > li {
 	backdrop-filter: blur(10px);
 }
 
+section.pay-bar .submit button,
 form.post input {
-	padding: 0.25em;
+	padding: 0.25rem;
 }
 
 form.post input[type="text"] {
 }
 
-form.post input[type="submit"],
-form.post input[type="button"] {
-	background-color: black;
+section.controls {
+	position: sticky;
+	top: 84px;
+	z-index: 100;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-end;
+	background-color: #050;
+	padding: 1em;
+}
+
+section.controls a {
 	color: white;
-	font-weight: bold;
-	text-transform: uppercase;
-	font-size: 0.65em;
-	font-weight: bold;
-	border: 0;
-	/*border-radius: 5px;*/
-	padding-left: 0.5em;
-	padding-right: 0.5em;
+	background-color: rgba(0,0,0,0.75);
+	padding: 0.5em;
+}
+
+.controls:empty {
+	display: none;
+}
+
+section.pay-bar {
+	position: sticky;
+	top: 136px;
+	z-index: 100;
+}
+
+section.pay-bar {
+	width: 30em;
+	margin: auto;
+}
+
+section.pay-bar .submit {
+	background-color: white;
+	padding: 1rem;
+	border:  1px solid rgba(0,0,0,0.5);
+	display: flex;
+	justify-content: flex-end;
+}
+
+section.pay-bar .braintree-dropin .braintree-upper-container {
+	box-shadow: 0em 0.5em 0.5em rgba(0,0,0,0.45);
+}
+
+.xx-large {
+	font-size: 2rem;
+}
+
+.donate-label {
+	margin-right: 1rem;
+}
+
+.donate input[type="number"] {
+	background-color: transparent;
+	border:  0;
+	width:  100%;
+	text-align: right;
+	font-size: 2rem;
+}
+
+.bottom-line {
+	border-bottom: 1px solid black;
+}
+
+.donate input[type="range"] {
+	width: 100%
+}
+
+div.right {
+	text-align: right;
+}
+
+div.rows.centered {
+	align-items: center;
+}
+
+div.cols.centered {
+	justify-content: center;
+}
+
+div.rows {
+	display: flex;
+	flex-direction: column;
+}
+
+div.cols {
+	display: flex;
+	flex-direction: row;
 }

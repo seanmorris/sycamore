@@ -1,7 +1,8 @@
 import { Sycamore } from './Sycamore';
 import { Bindable } from 'curvature/base/Bindable';
-import { View } from 'curvature/base/View';
 import { Model } from 'curvature/model/Model';
+import { View } from 'curvature/base/View';
+import { Form } from 'curvature/form/Form';
 
 import { MessageView } from './MessageView';
 import { MessageModel } from './MessageModel';
@@ -35,25 +36,62 @@ export class FeedView extends View
 
 		this.args.posts = this.args.posts || [];
 
-		this.index = 'type+time';
-		this.selector = IDBKeyRange.bound(
-			['m.room.message', 0]
-			, ['m.room.message', Infinity]
-		);
+		this.args.donateAmount = 10;
+
+		// this.args.donateForm = new Form({
+		// 	amount: {
+		// 		type: 'number'
+		// 		, attrs: {
+		// 			min: 0
+		// 			, max: 100
+		// 		}
+		// 	}
+		// });
+
+		this.args.showControls = true;
+
+		this.messageViews = new Map;
+
+		let ready;
+		this.index = 'type+room_id+time';
 
 		if(this.args.room_id)
 		{
-			this.index = 'room_id+type+time';
-			this.selector = IDBKeyRange.bound(
-				[this.args.room_id, 'm.room.message', 0]
-				, [this.args.room_id, 'm.room.message', Infinity]
-			);
+			ready = Promise.resolve();
+
+			this.selectors = [IDBKeyRange.bound(
+				['m.room.message', this.args.room_id, 0]
+				, ['m.room.message', this.args.room_id, Infinity]
+			)];
+
+			Sycamore.getSettings().then(settings => {
+				if(!settings.following)
+				{
+					return;
+				}
+
+				this.args.following = settings.following.includes(this.args.room_id);
+			});
+		}
+		else
+		{
+			ready = Sycamore.getFollowList().then(list => {
+
+				if(!list)
+				{
+					return false;
+				}
+
+				this.selectors = list.map(entry =>IDBKeyRange.bound(
+					['m.room.message', entry, 0]
+					, ['m.room.message', entry, Infinity]
+				));
+			});
 		}
 
 		this.args.showForm = false;
 
-		Promise.all([EventDatabase.open('events', 1), matrix.getToken()])
-		.then(([database, token])=>{
+		Promise.all([EventDatabase.open('events', 1), matrix.getToken(), ready]).then(([database, token])=>{
 
 			if(this.args.room_id)
 			{
@@ -71,14 +109,14 @@ export class FeedView extends View
 
 				const event = dbEvent.detail.record;
 
-				if(event.room_id === undefined)
+				if(event.room_id === undefined || event.type !== 'm.room.message')
 				{
 					return;
 				}
 
 				const eventKey = [event.room_id, event.type, event.received];
 
-				if(!this.selector || !this.selector.includes(eventKey))
+				if(!this.selectors || !this.selectors.filter(s => s.includes(eventKey)))
 				{
 					return;
 				}
@@ -96,6 +134,45 @@ export class FeedView extends View
 
 				this.listeners.set(this.args.room_id, controller);
 			}
+
+			this.loadFeeds();
+		});
+	}
+
+	onAttached(event)
+	{
+		var button = this.tags.submitPayment;
+
+		fetch('//localhost:2020/pay/token').then(r => r.text()).then(token => {
+			braintree.dropin.create({
+				authorization: token,
+				selector: this.tags.dropin
+			}, (err, instance) => {
+
+				button.node.addEventListener('click', event => {
+
+					instance.requestPaymentMethod((err, payload) => {
+
+						const method = 'POST';
+						const body   = new FormData;
+
+						body.append('nonce', payload.nonce);
+						// body.append('nonce', payload.nonce);
+						body.append('matrixUsername', 'xxyyzz');
+						body.append('amount', this.args.donateAmount);
+
+						braintree.dataCollector.create({client:instance._client}, (err, dataCollector) => {
+
+							body.append('device', dataCollector.deviceData)
+
+							fetch('//localhost:2020/pay/process', {method, body})
+							.then(r=>r.text())
+							.then(r=>console.log(r));
+
+						});
+					});
+				})
+			});
 		});
 	}
 
@@ -144,21 +221,23 @@ export class FeedView extends View
 	{
 		EventDatabase.open('events', 1).then(database => {
 
-			if(!this.selector)
+			if(!this.selectors)
 			{
 				return;
 			}
 
-			const range = this.selector;
+			const ranges = this.selectors;
 			const index = this.index;
 			const store = 'events';
-			const limit = false;
+			const limit = 0;
 
-			const direction = 'next';
+			const direction = 'prev';
 
 			const posts = [];
 
-			database.select({store, index, range, direction, limit}).each(event => {
+			// console.log(this.selectors);
+
+			database.select({store, index, ranges, direction, limit}).each(event => {
 
 				const user_id = event.sender || event.user_id;
 
@@ -190,6 +269,11 @@ export class FeedView extends View
 
 	getEventView(event)
 	{
+		if(this.messageViews.has(event.event_id))
+		{
+			return this.messageViews.get(event.event_id);
+		}
+
 		let messageView;
 
 		const user_id = event.sender || event.user_id;
@@ -199,10 +283,12 @@ export class FeedView extends View
 			case 'm.audio':
 				messageView = new MessageAudioView({
 					issued:    event.origin_server_ts / 1000
+					, order:   Date.now() - event.origin_server_ts
 					, body:    event.content.body
 					, header:  Bindable.make({ author: user_id })
 					, avatar: '/avatar.jpg'
 					, eventId: event.event_id
+					, roomId:  event.room_id
 					, source:  JSON.stringify(event.content, null, 4)
 					, event
 				});
@@ -211,14 +297,15 @@ export class FeedView extends View
 					messageView.args.url = localUrl;
 				});
 				break;
-
 			case 'm.video':
 				messageView = new MessageVideoView({
 					issued:    event.origin_server_ts / 1000
+					, order:   Date.now() - event.origin_server_ts
 					, body:    event.content.body
 					, header:  Bindable.make({ author: user_id })
 					, avatar: '/avatar.jpg'
 					, eventId: event.event_id
+					, roomId:  event.room_id
 					, source:  JSON.stringify(event.content, null, 4)
 					, event
 				});
@@ -227,64 +314,80 @@ export class FeedView extends View
 					messageView.args.url = localUrl;
 				});
 				break;
-
 			case 'm.image':
 				messageView = new MessageImageView({
 					issued:    event.origin_server_ts / 1000
+					, order:   Date.now() - event.origin_server_ts
 					, body:    event.content.body
 					, header:  Bindable.make({ author: user_id })
 					, avatar: '/avatar.jpg'
 					, eventId: event.event_id
+					, roomId:  event.room_id
 					, source:  JSON.stringify(event.content, null, 4)
 					, event
 				});
-
-				const getFromOrigin = setTimeout(()=>{
-					matrix.getMedia(event.content.url).then(localUrl => {
-						messageView.args.url = localUrl;
-						fetch(localUrl).then(response => response.arrayBuffer()).then(fileBuffer => {
-							const file = new File([fileBuffer], event.content.body, {type: event.content.info.type});
-							webTorrent.seed(file, torrent => console.log(torrent));
-							console.log(torrent.magnetURI);
-						});
-					});
-				}, 15000);
-
-				if(event.content.sycamore.magnet)
-				{
-					webTorrentSeed.add(event.content.sycamore.magnet, torrent => {
-						console.log(event.content.sycamore.magnet);
-						for(const file of torrent.files)
-						{
-							file.getBlobURL((error, url) => {
-								if(!error)
-								{
-									clearTimeout(getFromOrigin);
-									messageView.args.url = url;
-									return;
-								}
-								console.log(error);
-							});
-							break;
-						}
-						torrent.on('done', () => {
-						})
-					});
-				}
 
 				break;
 
 			default:
 				messageView = new MessageView({
 					issued:    event.origin_server_ts / 1000
+					, order:   Date.now() - event.origin_server_ts
 					, body:    event.content.body
+					, type:    event.type
 					, header:  Bindable.make({ author: user_id ?? null })
 					, avatar: '/avatar.jpg'
 					, eventId: event.event_id
-					, source:  JSON.stringify(event.content, null, 4)
+					, roomId:  event.room_id
+					, source:  JSON.stringify(event, null, 4)
 					, event
 				});
 		}
+
+		switch(event.content.msgtype)
+		{
+			case 'm.audio':
+			case 'm.video':
+			case 'm.image':
+				matrix.getMedia(event.content.url).then(localUrl => {
+					messageView.args.url = localUrl;
+					fetch(localUrl).then(response => response.arrayBuffer()).then(fileBuffer => {
+
+						if(!event.content || !event.content.info)
+						{
+							return;
+						}
+
+						const file = new File([fileBuffer], event.content.body, {type: event.content.info.type});
+					});
+				});
+
+				// const getFromOrigin = setTimeout(()=>{
+				// }, 1500);
+
+				// if(event.content.sycamore && event.content.sycamore.magnet)
+				// {
+				// 	webTorrentSeed.add(event.content.sycamore.magnet, torrent => {
+				// 		for(const file of torrent.files)
+				// 		{
+				// 			file.getBlobURL((error, url) => {
+				// 				if(!error)
+				// 				{
+				// 					clearTimeout(getFromOrigin);
+				// 					messageView.args.url = url;
+				// 					return;
+				// 				}
+				// 			});
+				// 			break;
+				// 		}
+				// 		torrent.on('done', () => {
+				// 		})
+				// 	});
+				// }
+
+				break;
+		}
+
 
 		if(event.content.sycamore
 			&& event.content.sycamore.public
@@ -300,6 +403,8 @@ export class FeedView extends View
 		}
 
 		messageView.preserve = true;
+
+		this.messageViews.set(event.event_id, messageView);
 
 		return messageView;
 	}
@@ -472,7 +577,7 @@ export class FeedView extends View
 				{
 					case 'image':
 					case 'video':
-					case 'audio':
+					case 'audio': {
 						matrix.postMedia(file, file.name).then(response => {
 							matrix.putEvent(this.args.room_id, 'm.room.message', {
 								msgtype: 'm.' + baseType
@@ -482,8 +587,9 @@ export class FeedView extends View
 								, info: { type: file.type }
 							});
 						});
-						break
-					default:
+						break;
+					}
+					default: {
 						matrix.postMedia(file, file.name).then(response => {
 							matrix.putEvent(this.args.room_id, 'm.room.message', {
 								msgtype: 'm.file'
@@ -493,8 +599,9 @@ export class FeedView extends View
 								, info: { type: file.type }
 							});
 						});
+						break;
+					}
 				}
-
 			});
 
 
@@ -505,5 +612,25 @@ export class FeedView extends View
 	{
 		event.preventDefault();
 		event.stopPropagation();
+	}
+
+	follow()
+	{
+		Sycamore.followFeed(this.args.room_id).then(this.args.following = true);
+	}
+
+	unfollow()
+	{
+		Sycamore.unfollowFeed(this.args.room_id).then(this.args.following = false);
+	}
+
+	subscribe()
+	{
+		this.args.paybox = !(this.args.paybox || false);
+	}
+
+	unsubscribe()
+	{
+		this.args.paybox = !(this.args.paybox || false);
 	}
 }

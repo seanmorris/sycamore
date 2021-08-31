@@ -1,3 +1,4 @@
+section.donate,
 form.post,
 ul.messages {
 	width: 30em;
@@ -45,7 +46,7 @@ ul.comments li {
 	padding-top: 1em;
 	padding-bottom: 1em;
 	display: flex;
-	flex-direction: flex-start;
+	flex-direction: row;
 	justify-content: flex-end;
 }
 
@@ -67,9 +68,14 @@ ul.comments {
 
 ul.messages {
 	display: flex;
-	flex-direction: column-reverse;
+	flex-direction: column;
 }
 
+section.donate {
+	margin-top: 1em;
+}
+
+section.donate,
 form.post,
 ul.messages > li {
 	box-sizing: border-box;
@@ -118,6 +124,7 @@ ul.messages > li section:not(:last-child) {
 
 ul.messages > li section.comments {
 	text-align: right;
+	margin-top: 1.5em;
 }
 
 ul.messages > li section:last-child {
@@ -233,4 +240,8 @@ ul.messages .body iframe {
 
 ul.messages .body iframe {
 	height: 18rem;
+}
+
+.controls > span > a {
+	margin-left: 0.5em;
 }

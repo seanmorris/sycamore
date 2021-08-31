@@ -19,8 +19,16 @@ export class EventDatabase extends Database
 		eventStore.createIndex('reactTo+time', ['content.sycamore.reactTo', 'received'], {unique: false});
 
 		eventStore.createIndex('type+time', ['type', 'received'], {unique: false});
-
 		eventStore.createIndex('room_id+time', ['room_id', 'received'], {unique: false});
+
+		eventStore.createIndex('type+time+room_id', ['type', 'received', 'room_id'], {unique: false});
+		eventStore.createIndex('type+room_id+time', ['type', 'room_id', 'received'], {unique: false});
+
 		eventStore.createIndex('room_id+type+time', ['room_id', 'type', 'received'], {unique: false});
+		eventStore.createIndex('room_id+time+type', ['room_id', 'received', 'type'], {unique: false});
+
+		eventStore.createIndex('time+room_id+type', ['received', 'room_id', 'type'], {unique: false});
+		eventStore.createIndex('time+type+room_id', ['received', 'type', 'room_id'], {unique: false});
+
 	}
 }

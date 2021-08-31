@@ -1,8 +1,8 @@
-<li class = "[[verified|verifiedClass]]" data-type = "[[header.mime]]">
+<li class = "[[verified|verifiedClass]]" data-type = "[[header.mime]]" style = "order: [[order]]">
 	<section class = "author">
 		<div class = "avatar"></div>
 		<span class = "author">
-			<a cv-link = "user/[[uid]]">[[header.author]]</a>
+			<a cv-link = "/feed/[[roomId]]">[[header.author]]</a>
 			<div class = "verify icon"></div>
 		</span>
 	</section>
@@ -13,8 +13,7 @@
 
 	<section>
 		<span class = "body video">
-			[[body]]
-			<video controls mute autoplay loop cv-attr = "src:url"></video>
+			<video controls mute loop cv-attr = "src:url"></video>
 		</span>
 	</section>
 
@@ -26,7 +25,7 @@
 	</section>
 
 	<section>
-		<a cv-link = "/messages/[[name]]">
+		<a cv-link = "/messages/[[eventId]]">
 			[[name]]
 			<img class = "icon" src = "/go.svg" />
 		</a>

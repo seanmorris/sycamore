@@ -1,0 +1,49 @@
+section.installer svg g.checkmark {
+	opacity: 0;
+}
+
+section.installer svg.checkmark g.checkmark {
+	opacity: 1;
+}
+
+section.installer svg g.checkmark line {
+	stroke-dasharray: calc(var(--percent) * 100), 100;
+	stroke-width: 3;
+	stroke: black;
+}
+
+section.installer svg circle {
+	transition: stroke-dasharray ease-out 0.375s 0.5s;
+}
+
+section.installer svg.hide circle {
+	transition: stroke-dasharray ease-out 0.375s 0.5s;
+}
+
+section.installer svg.hide g.checkmark line:nth-child(1) {
+	transition: stroke-dasharray ease-out 0.25s 0.25s;
+}
+
+section.installer svg.hide g.checkmark line:nth-child(2) {
+	transition: stroke-dasharray ease-out 0.25s;
+}
+
+section.installer svg.show circle {
+	transition: stroke-dasharray ease-out 0.375s;
+}
+
+section.installer svg.show g.checkmark line:nth-child(1) {
+	transition: stroke-dasharray ease-out 0.25s 0.25s;
+}
+
+section.installer svg.show  g.checkmark line:nth-child(2) {
+	transition: stroke-dasharray ease-out 0.25s 0.50s;
+}
+
+section.installer svg.checkmark.hide {
+	--percent: 0;
+}
+
+section.installer svg.checkmark.show {
+	--percent: 1;
+}

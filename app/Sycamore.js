@@ -22,8 +22,7 @@ export class Sycamore
 
 	static checkFeeds(userId)
 	{
-		this.getSettings(userId).then(settings => {
-
+		Promise.all([matrix.whoAmI(), this.getSettings(userId)]).then(([user, settings]) => {
 			let createPublic  = Promise.resolve({room_id: settings.publicFeed});
 			let createPrivate = Promise.resolve({room_id: settings.privateFeed});
 
@@ -44,7 +43,7 @@ export class Sycamore
 						type:  'm.room.power_levels'
 						, content: {
 							users_default: 0,
-							users: { '@seanmorris:matrix.org': 100 },
+							users: { [user.user_id]: 100 },
 							events: {
 								'm.room.history_visibility': 100,
 								'm.room.canonical_alias': 100,
@@ -85,7 +84,7 @@ export class Sycamore
 						type:  'm.room.power_levels'
 						, content: {
 							users_default: 0,
-							users: { '@seanmorris:matrix.org': 100 },
+							users: { [user.user_id]: 100 },
 							events: {
 								'm.room.history_visibility': 100,
 								'm.room.canonical_alias': 100,
@@ -117,6 +116,57 @@ export class Sycamore
 				return matrix.putUserData('sycamore.settings', JSON.stringify(settings));
 			});
 
+		});
+	}
+
+	static followFeed(feedId, userId)
+	{
+		return this.getSettings(userId).then(settings => {
+
+			if(!settings.following)
+			{
+				settings.following = [];
+			}
+
+			if(!settings.following.includes(feedId))
+			{
+				settings.following.push(feedId);
+			}
+
+			matrix.joinRoom(feedId);
+
+			return matrix.putUserData('sycamore.settings', JSON.stringify(settings));
+		});
+	}
+
+	static unfollowFeed(feedId, userId)
+	{
+		return this.getSettings(userId).then(settings => {
+
+			if(!settings.following)
+			{
+				settings.following = [];
+			}
+
+			const index = settings.following.indexOf(feedId);
+
+			if(index > -1)
+			{
+				settings.following.splice(index, 1);
+			}
+
+			console.log(settings.following, index);
+
+			matrix.leaveRoom(feedId);
+
+			return matrix.putUserData('sycamore.settings', JSON.stringify(settings));
+		});
+	}
+
+	static getFollowList(userId)
+	{
+		return this.getSettings(userId).then(settings => {
+			return settings.following;
 		});
 	}
 }

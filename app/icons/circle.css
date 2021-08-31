@@ -1,0 +1,7 @@
+section.installer svg circle {
+	stroke-dasharray: calc(var(--percent) * 100), 100;
+}
+
+section.installer svg.none circle {
+	opacity: 0;
+}

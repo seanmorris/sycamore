@@ -15,7 +15,7 @@ export class MessageView extends View
 		this.args.comments = [];
 		this.args.likes = 0;
 		this.likers = new Set;
-		this.args.showComments = true;
+		this.args.showComments = false;
 
 		const messageId = this.args.event.event_id;
 
@@ -24,8 +24,7 @@ export class MessageView extends View
 			, [messageId, Infinity]
 		);
 
-		Promise.all([EventDatabase.open('events', 1), matrix.getToken()])
-		.then(([database, token])=>{
+		Promise.all([EventDatabase.open('events', 1), matrix.getToken()]).then(([database, token])=>{
 
 			const store = 'events';
 			// const index = 'replyTo+time';
@@ -48,7 +47,6 @@ export class MessageView extends View
 				{
 					return;
 				}
-
 
 				const eventKey = [record.content.sycamore.replyTo, record.received];
 
@@ -134,8 +132,6 @@ export class MessageView extends View
 						, image: profile.avatar_url_local
 						, sender: dbEvent.detail.record.sender
 					};
-
-					console.log(profile);
 
 					const eventKey = [event.content.sycamore.replyTo, event.received];
 

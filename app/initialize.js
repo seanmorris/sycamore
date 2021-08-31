@@ -12,6 +12,7 @@ import { MessageModel } from './MessageModel';
 import { WarehouseConsole } from './WarehouseConsole';
 
 import { Matrix } from './Matrix';
+import { Installer } from './Installer';
 import { EventModel as MatrixEvent } from './matrix/EventModel';
 import { EventDatabase } from './matrix/EventDatabase';
 
@@ -26,11 +27,12 @@ Object.defineProperty(window, 'webTorrentSeed', {value: new WebTorrent});
 const routes = {
 	'': args => {
 		const feed = new FeedView({...args, showForm: true});
-		feed.loadFeeds();
 		return feed;
 	}
 
-	, 'settings': SettingsView
+	, settings: SettingsView
+
+	, installer: Installer
 
 	, 'my-feed': () => {
 
@@ -42,7 +44,6 @@ const routes = {
 
 	, 'feed/%room_id': args => {
 		const feed = new FeedView(args);
-		feed.loadFeeds();
 		return feed;
 	}
 
@@ -93,8 +94,8 @@ Promise.all([getDatabase, getToken]).then(([database, access_token]) => {
 
 	Sycamore.checkFeeds(token.user_id);
 
-	matrix.addEventListener('matrix-event', throwEvent => {
-		const event = MatrixEvent.from(throwEvent.detail);
+	matrix.addEventListener('matrix-event', thrownEvent => {
+		const event = MatrixEvent.from(thrownEvent.detail);
 		const store = 'events';
 		const index = 'event_id';
 		const range = event.event_id;

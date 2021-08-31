@@ -1,0 +1,58 @@
+section.installer svg g.crossmark {
+	opacity: 0;
+}
+
+section.installer svg.crossmark g.crossmark {
+	opacity: 1;
+}
+
+section.installer svg g.crossmark line {
+	transform-origin: center;
+	stroke-dasharray: calc(var(--percent) * 100), 100;
+	stroke-width: 3;
+	stroke: black;
+}
+
+section.installer svg circle {
+	transition: stroke-dasharray ease-out 0.375s 0.5s;
+}
+
+section.installer svg.hide circle {
+	transition: stroke-dasharray ease-out 0.375s 0.5s;
+}
+
+section.installer svg.hide g.crossmark line:nth-child(1) {
+	transform: rotate(-45deg);
+	transition:
+		stroke-dasharray ease-out 0.25s 0.25s
+		, transform 0.25s ease-in;
+}
+
+section.installer svg.hide g.crossmark line:nth-child(2) {
+	transform: rotate(45deg);
+	transition:
+		stroke-dasharray ease-out 0.25s
+		, transform 0.25s ease-in;
+}
+
+section.installer svg.show circle {
+	transition: stroke-dasharray ease-out 0.375s;
+}
+
+section.installer svg.show g.crossmark line:nth-child(1) {
+	transition: stroke-dasharray ease-out 0.25s 0.25s;
+	transform: rotate(-45deg);
+}
+
+section.installer svg.show  g.crossmark line:nth-child(2) {
+	transition: stroke-dasharray ease-out 0.25s 0.50s;
+	transform: rotate(45deg);
+}
+
+section.installer svg.crossmark.hide {
+	--percent: 0;
+}
+
+section.installer svg.crossmark.show {
+	--percent: 1;
+}

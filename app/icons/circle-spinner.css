@@ -1,0 +1,52 @@
+section.installer svg circle {
+	--radius:  40;
+	r: var(--radius);
+}
+
+section.installer svg.spinner {
+	animation: turn-forever 1s linear infinite;
+}
+
+section.installer svg.spinner circle {
+	transition: stroke-dasharray ease-out 0.375s;
+	transform-origin: center;
+	animation:
+		spin-forever 2s linear infinite,
+		flip-forever 2s steps(1) infinite;
+}
+
+@keyframes spin-forever {
+	from {
+		stroke-dasharray: 100, 100;
+	}
+	50% {
+		stroke-dasharray: 0, 100;
+	}
+	to {
+		stroke-dasharray: 100, 100;
+	}
+}
+
+@keyframes turn-forever {
+	from {
+		transform: rotate(0deg);
+	}
+	50% {
+		transform: rotate(360deg);
+	}
+	to {
+		transform: rotate(720deg);
+	}
+}
+
+@keyframes flip-forever {
+	from {
+		transform: scaleY(1);
+	}
+	50% {
+		transform: scaleY(-1);
+	}
+	to {
+		transform: scaleY(1);
+	}
+}

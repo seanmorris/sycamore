@@ -37,7 +37,6 @@ exports.hooks = {
 	}
 };
 exports.npm = {
-	// aliases: {util: 'util'}
 	styles: {
 		codemirror: [
 			"lib/codemirror.css",

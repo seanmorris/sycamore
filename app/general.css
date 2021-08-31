@@ -1,0 +1,17 @@
+button.flat-black,
+.black-button,
+section.pay-bar .submit button,
+form.post input[type="submit"],
+form.post input[type="button"] {
+	background-color: black;
+	color: white;
+	font-weight: bold;
+	text-transform: uppercase;
+	font-size: 0.65em;
+	font-weight: bold;
+	border: 0;
+	/*border-radius: 5px;*/
+	padding-left: 0.5rem;
+	padding-right: 0.5rem;
+	min-height: 35px;
+}

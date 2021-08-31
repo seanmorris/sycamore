@@ -1,10 +1,52 @@
-<section cv-if = "showForm">
+<section class = "controls" cv-if = "room_id">
 
+	<span cv-if = "!paybox">
+		<a cv-link cv-on = "click:subscribe(event)">subscribe</a>
+	</span>
+	<span cv-if = "paybox">
+		<a cv-link cv-on = "click:unsubscribe(event)">unsubscribe</a>
+	</span>
+
+	<span cv-if = "!following">
+		<a cv-link cv-on = "click:follow(event)">follow</a>
+	</span>
+	<span cv-if = "following">
+		<a cv-link cv-on = "click:unfollow(event)">unfollow</a>
+	</span>
+
+</section>
+
+<section class = "pay-bar" cv-if = "paybox">
+	<div cv-ref = "dropin"></div>
+	<div class = "submit"><button cv-ref = "submitPayment">submit payment</button></div>
+</section>
+
+<section class = "donate">
+	<!-- <div class = "cols">
+		<div>donate</div>
+		<div>purchase</div>
+		<div>subscribe</div>
+	</div> -->
+	<div class = "cols centered">
+		<div class = "xx-large donate-label">Donate</div>
+		<div class = "rows centered">
+			<div class = "cols bottom-line">
+				<span class = "xx-large">$</span>
+				<input type = "number" cv-bind = "donateAmount" min = "1" max = "500" />
+			</div>
+			<div>
+				<input type = "range" cv-bind = "donateAmount" min = "1" max = "500" />
+			</div>
+		</div>
+	</div>
+	<div class = "submit right"><button class = "black-button" cv-ref = "submitAmount">go</button></div>
+</section>
+
+<section cv-if = "showForm">
 	<form class = "post" cv-on = "submit:createPost(event); drop:fileDropped(event):c; dragover:fileDragged(event):c">
 		<input type = "text" placeholder = "Write a post!" cv-bind = "inputPost" />
 		<input type = "submit" />
 	</form>
-
 </section>
 
 <ul class = "messages" cv-each = "posts:post">[[post]]</ul>
